@@ -379,8 +379,8 @@
                     
                     // Update image info
                     document.getElementById('image-info').style.display = 'block';
-                    document.getElementById('image-name').textContent = Filename: ${file.name};
-                    document.getElementById('image-size').textContent = Size: ${(file.size / 1024).toFixed(2)} KB;
+                    document.getElementById('image-name').textContent = `Filename: ${file.name}`;
+                    document.getElementById('image-size').textContent = `Size: ${(file.size / 1024).toFixed(2)} KB`;
                     
                     // Enable proceed button
                     document.getElementById('proceed-to-step2').disabled = false;
@@ -446,20 +446,20 @@
             let description = "";
             
             if (topConfidence > 0.85) {
-                description = This image clearly shows a ${topClass}.;
+                description = `This image clearly shows a ${topClass}.`;
             } else if (topConfidence > 0.6) {
-                description = This image appears to show a ${topClass}.;
+                description = `This image appears to show a ${topClass}.`;
             } else {
-                description = This image might contain a ${topClass}, but I'm not very confident.;
+                description = `This image might contain a ${topClass}, but I'm not very confident.`;
             }
             
             // Add additional details about image qualities
-            description +=  It is a ${orientation} image with ${brightness} overall.;
+            description += ` It is a ${orientation} image with ${brightness} overall.`;
             
             // Add information about other possible classes if they have significant probability
             const otherClasses = classResults.slice(1).filter(c => c.probability > 0.15);
             if (otherClasses.length > 0) {
-                description +=  I can also see elements of ${otherClasses.map(c => c.className).join(", ")}.;
+                description += ` I can also see elements of ${otherClasses.map(c => c.className).join(", ")}.`;
             }
             
             return description;
@@ -479,7 +479,7 @@
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': Bearer ${apiKey}
+                    'Authorization': `Bearer ${apiKey}`
                 },
                 body: JSON.stringify({
                     model: 'gpt-4-turbo',  // Updated to current vision model
@@ -489,12 +489,12 @@
                             content: [
                                 {
                                     type: 'text',
-                                    text: Describe this image in detail. Our classification model identified these possible objects: ${topClasses}. Please verify and provide a detailed description of the image.
+                                    text: `Describe this image in detail. Our classification model identified these possible objects: ${topClasses}. Please verify and provide a detailed description of the image.`
                                 },
                                 {
                                     type: 'image_url',
                                     image_url: {
-                                        url: data:image/jpeg;base64,${base64Image}
+                                        url: `data:image/jpeg;base64,${base64Image}`
                                     }
                                 }
                             ]
@@ -506,7 +506,7 @@
             
             if (!response.ok) {
                 const errorData = await response.json();
-                throw new Error(OpenAI API error: ${errorData.error?.message || response.statusText});
+                throw new Error(`OpenAI API error: ${errorData.error?.message || response.statusText}`);
             }
             
             const data = await response.json();
@@ -527,7 +527,7 @@
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': Bearer ${apiKey}
+                    'Authorization': `Bearer ${apiKey}`
                 },
                 body: JSON.stringify({
                     model: 'deepseek-chat',
@@ -537,12 +537,12 @@
                             content: [
                                 {
                                     type: 'text',
-                                    text: Describe this image in detail. Our classification model identified these possible objects: ${topClasses}. Please verify and provide a detailed description of the image.
+                                    text: `Describe this image in detail. Our classification model identified these possible objects: ${topClasses}. Please verify and provide a detailed description of the image.`
                                 },
                                 {
                                     type: 'image',
                                     image_url: {
-                                        url: data:image/jpeg;base64,${base64Image}
+                                        url: `data:image/jpeg;base64,${base64Image}`
                                     }
                                 }
                             ]
@@ -554,7 +554,7 @@
             
             if (!response.ok) {
                 const errorData = await response.json();
-                throw new Error(DeepSeek API error: ${errorData.error?.message || response.statusText});
+                throw new Error(`DeepSeek API error: ${errorData.error?.message || response.statusText}`);
             }
             
             const data = await response.json();
@@ -600,13 +600,13 @@
                     
                     // Load metadata
                     resultElement.textContent = 'Loading metadata...';
-                    const metadataURL = ${modelFolderPath}metadata.json;
+                    const metadataURL = `${modelFolderPath}metadata.json`;
                     const metadataResponse = await fetch(metadataURL);
                     
                     progressBar.style.width = '70%';
                     
                     if (!metadataResponse.ok) {
-                        throw new Error(Failed to fetch metadata: ${metadataResponse.status} ${metadataResponse.statusText});
+                        throw new Error(`Failed to fetch metadata: ${metadataResponse.status} ${metadataResponse.statusText}`);
                     }
                     
                     const metadata = await metadataResponse.json();
@@ -641,7 +641,7 @@
                     let resultHTML = '<h3>Classification Results:</h3>';
                     resultHTML += '<ul>';
                     results.forEach(result => {
-                        resultHTML += <li>${result.className}: ${(result.probability * 100).toFixed(2)}%</li>;
+                        resultHTML += `<li>${result.className}: ${(result.probability * 100).toFixed(2)}%</li>`;
                     });
                     resultHTML += '</ul>';
                     
@@ -659,7 +659,7 @@
                     
                     // Provide more specific error messages
                     if (modelError.message.includes('fetch')) {
-                        resultElement.innerHTML = 
+                        resultElement.innerHTML = `
                             <p>Error: Failed to fetch the model or metadata.</p>
                             <p><strong>Troubleshooting steps:</strong></p>
                             <ol>
@@ -669,19 +669,19 @@
                                 <li>If using a custom-hosted model, ensure CORS is enabled on your server</li>
                             </ol>
                             <p>Detailed error: ${modelError.message}</p>
-                        ;
+                        `;
                     } else {
-                        resultElement.innerHTML = Error: ${modelError.message}<br>Check the console for more details.;
+                        resultElement.innerHTML = `Error: ${modelError.message}<br>Check the console for more details.`;
                     }
                     
                     throw modelError; // Re-throw to prevent further processing
                 }
             } catch (error) {
                 if (!resultElement.innerHTML.includes('Troubleshooting')) {
-                    resultElement.innerHTML = 
+                    resultElement.innerHTML = `
                         <p>Error: ${error.message}</p>
                         <p>Please check your model URL, internet connection, and try again.</p>
-                    ;
+                    `;
                 }
                 progressBar.style.width = '0%';
                 console.error('Classification error:', error);
@@ -729,7 +729,7 @@
                 document.getElementById('proceed-to-step3').disabled = false;
                 
             } catch (error) {
-                descriptionElement.textContent = Error generating description: ${error.message};
+                descriptionElement.textContent = `Error generating description: ${error.message}`;
                 console.error('Description generation error:', error);
             } finally {
                 // Hide the loader
@@ -759,7 +759,7 @@
             let formattedResults = '';
             classificationResult.forEach((result, index) => {
                 const percentage = (result.probability * 100).toFixed(1);
-                formattedResults += ${result.className}: ${percentage}%;
+                formattedResults += `${result.className}: ${percentage}%`;
                 if (index < classificationResult.length - 1) {
                     formattedResults += ', ';
                 }
