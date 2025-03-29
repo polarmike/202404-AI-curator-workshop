@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Image Classifier with Teachable Machine 3</title>
+    <title>Image Classifier - Three Step Process</title>
     <!-- TensorFlow.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tensorflow/3.18.0/tf.min.js"></script>
     <!-- Fallback to direct CDN if the first one fails -->
@@ -19,7 +19,7 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            max-width: 800px;
+            max-width: 1000px;
             margin: 0 auto;
             padding: 20px;
         }
@@ -28,22 +28,106 @@
             flex-direction: column;
             gap: 20px;
         }
-        #result-container {
-            margin-top: 20px;
+        /* Step indicator styles */
+        .steps-container {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+        }
+        .step {
+            flex: 1;
+            text-align: center;
+            padding: 15px;
+            background-color: #f0f0f0;
+            border-radius: 5px;
+            position: relative;
+        }
+        .step.active {
+            background-color: #4CAF50;
+            color: white;
+            font-weight: bold;
+        }
+        .step.completed {
+            background-color: #8BC34A;
+            color: white;
+        }
+        .step:not(:last-child):after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            right: -15px;
+            width: 30px;
+            height: 2px;
+            background-color: #ddd;
+            z-index: -1;
+        }
+        /* Main content area with sidebar layout */
+        .main-content {
+            display: flex;
+            gap: 20px;
+        }
+        .sidebar {
+            width: 300px;
             padding: 15px;
             border: 1px solid #ddd;
             border-radius: 5px;
             background-color: #f9f9f9;
-            min-height: 100px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .content-area {
+            flex: 1;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
         }
         #preview {
-            max-width: 300px;
-            max-height: 300px;
+            max-width: 250px;
+            max-height: 250px;
             margin-top: 10px;
+            border-radius: 5px;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.16);
         }
-        button, input[type="file"], input[type="text"] {
+        .preview-container {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        .step-content {
+            display: none;
+        }
+        .active-step {
+            display: block;
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #0b7dda;
+        }
+        .button-container {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        button.disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        input[type="file"], input[type="text"], select {
             padding: 10px;
             margin: 5px 0;
+            width: 100%;
+            border: 1px solid #ddd;
+            border-radius: 4px;
         }
         .instructions {
             background-color: #e8f4ff;
@@ -51,11 +135,8 @@
             border-radius: 5px;
             margin-bottom: 20px;
         }
-        .api-settings {
-            background-color: #f0f0f0;
-            padding: 15px;
-            border-radius: 5px;
-            margin: 10px 0;
+        .result-container {
+            margin-top: 20px;
         }
         .loader {
             border: 4px solid #f3f3f3;
@@ -71,84 +152,176 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        .hidden {
+            display: none;
+        }
+        .api-settings {
+            background-color: #f0f0f0;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .progress-indicator {
+            height: 4px;
+            width: 100%;
+            background-color: #f0f0f0;
+            margin-top: 10px;
+        }
+        .progress-bar {
+            height: 100%;
+            width: 0;
+            background-color: #4CAF50;
+            transition: width 0.3s ease;
+        }
+        .no-image-placeholder {
+            width: 250px;
+            height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #f0f0f0;
+            border: 2px dashed #ccc;
+            border-radius: 5px;
+            color: #888;
+            font-size: 16px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Image Classifier with Teachable Machine</h1>
+        <h1>Image Classifier - Three Step Process</h1>
         
-        <div class="instructions">
-            <h3>How to use:</h3>
-            <ol>
-                <li>Enter your Teachable Machine model URL (should end with "/model.json")</li>
-                <li>Upload an image</li>
-                <li>Click "Classify Image" to get the prediction</li>
-            </ol>
-            <h3>Getting your Teachable Machine model URL:</h3>
-            <ol>
-                <li>Go to your model on <a href="https://teachablemachine.withgoogle.com/" target="_blank">Teachable Machine</a></li>
-                <li>Click "Export Model"</li>
-                <li>Select "Tensorflow.js" tab</li>
-                <li>Click "Upload my model" to host it on Teachable Machine servers</li>
-                <li>Copy the provided model URL (should look like "https://teachablemachine.withgoogle.com/models/YOUR_MODEL_ID/")</li>
-                <li>Add "model.json" to the end of the URL if not already present</li>
-            </ol>
-        </div>
-        
-        <div>
-            <label for="model-url">Teachable Machine Model URL:</label>
-            <input type="text" id="model-url" style="width: 100%;" placeholder="https://teachablemachine.withgoogle.com/models/YOUR_MODEL_ID/model.json">
-        </div>
-        
-        <div>
-            <label for="image-upload">Upload Image:</label>
-            <input type="file" id="image-upload" accept="image/*">
-            <div>
-                <img id="preview" src="" alt="" style="display: none;">
+        <!-- Step indicators -->
+        <div class="steps-container">
+            <div id="step1" class="step active">
+                <h3>Step 1</h3>
+                <p>Upload Image</p>
+            </div>
+            <div id="step2" class="step">
+                <h3>Step 2</h3>
+                <p>Process & Analyze</p>
+            </div>
+            <div id="step3" class="step">
+                <h3>Step 3</h3>
+                <p>Interactive Chat</p>
             </div>
         </div>
         
-        <button id="classify-button">Classify Image</button>
-        
-        <div id="result-container">
-            <h3>Classification Result:</h3>
-            <p id="result">Upload an image and click "Classify Image" to see results.</p>
-        </div>
-        
-        <div id="image-description-container" style="margin-top: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 5px; background-color: #f9f9f9;">
-            <h3>Image Description:</h3>
-            
-            <div class="api-settings">
-                <h4>External AI Provider Settings</h4>
-                <div>
-                    <label for="ai-provider">Select AI Provider:</label>
-                    <select id="ai-provider" style="padding: 8px; width: 200px;">
-                        <option value="local">Local (Basic Description)</option>
-                        <option value="openai">OpenAI (GPT-4 Vision)</option>
-                        <option value="deepseek">DeepSeek AI</option>
-                    </select>
+        <!-- Main content area with sidebar layout -->
+        <div class="main-content">
+            <!-- Sidebar with image preview -->
+            <div class="sidebar">
+                <h3>Image Preview</h3>
+                <div class="preview-container">
+                    <div id="no-image" class="no-image-placeholder">
+                        <p>No image uploaded</p>
+                    </div>
+                    <img id="preview" src="" alt="" style="display: none;">
                 </div>
-                <div id="api-key-container" style="margin-top: 10px; display: none;">
-                    <label for="api-key">API Key:</label>
-                    <input type="password" id="api-key" style="width: 300px;" placeholder="Enter your API key">
+                <div id="image-info" style="display: none;">
+                    <p id="image-name">Filename: </p>
+                    <p id="image-size">Size: </p>
+                </div>
+                <div class="model-input" style="width: 100%;">
+                    <label for="model-url">Teachable Machine Model URL:</label>
+                    <input type="text" id="model-url" placeholder="https://teachablemachine.withgoogle.com/models/YOUR_MODEL_ID/model.json">
                 </div>
             </div>
             
-            <p id="image-description">Upload and classify an image to generate a description.</p>
-            <div id="description-loader" style="display: none;">
-                <span class="loader"></span> Generating description...
+            <!-- Main content area -->
+            <div class="content-area">
+                <!-- Step 1 Content: Upload Image -->
+                <div id="step1-content" class="step-content active-step">
+                    <h2>Step 1: Upload Your Image</h2>
+                    <div class="instructions">
+                        <h3>Instructions:</h3>
+                        <p>Select an image file to upload for classification. The model works best with clear images where the subject is prominently visible.</p>
+                        <h3>Getting your Teachable Machine model URL:</h3>
+                        <ol>
+                            <li>Go to your model on <a href="https://teachablemachine.withgoogle.com/" target="_blank">Teachable Machine</a></li>
+                            <li>Click "Export Model"</li>
+                            <li>Select "Tensorflow.js" tab</li>
+                            <li>Click "Upload my model" to host it on Teachable Machine servers</li>
+                            <li>Copy the provided model URL</li>
+                            <li>Add "model.json" to the end of the URL if not already present</li>
+                        </ol>
+                    </div>
+                    <div class="upload-container">
+                        <label for="image-upload">Select Image File:</label>
+                        <input type="file" id="image-upload" accept="image/*">
+                    </div>
+                    <div class="button-container">
+                        <div></div> <!-- Empty div for spacing -->
+                        <button id="proceed-to-step2" disabled>Proceed to Analysis</button>
+                    </div>
+                </div>
+                
+                <!-- Step 2 Content: Process & Analyze -->
+                <div id="step2-content" class="step-content">
+                    <h2>Step 2: Process & Analyze Image</h2>
+                    <div class="analysis-options">
+                        <h3>Classification</h3>
+                        <div id="classification-progress" class="progress-indicator">
+                            <div id="classification-progress-bar" class="progress-bar"></div>
+                        </div>
+                        <div id="result-container" class="result-container">
+                            <p id="result">Click "Classify Image" to see results.</p>
+                        </div>
+                        <button id="classify-button">Classify Image</button>
+                        
+                        <h3>Image Description</h3>
+                        <div class="api-settings">
+                            <h4>External AI Provider Settings</h4>
+                            <div>
+                                <label for="ai-provider">Select AI Provider:</label>
+                                <select id="ai-provider">
+                                    <option value="local">Local (Basic Description)</option>
+                                    <option value="openai">OpenAI (GPT-4 Vision)</option>
+                                    <option value="deepseek">DeepSeek AI</option>
+                                </select>
+                            </div>
+                            <div id="api-key-container" style="display: none;">
+                                <label for="api-key">API Key:</label>
+                                <input type="password" id="api-key" placeholder="Enter your API key">
+                            </div>
+                        </div>
+                        
+                        <div id="description-container" class="result-container">
+                            <p id="image-description">Click "Generate Description" to analyze the image.</p>
+                            <div id="description-loader" style="display: none;">
+                                <span class="loader"></span> Generating description...
+                            </div>
+                        </div>
+                        <button id="generate-description" disabled>Generate Image Description</button>
+                    </div>
+                    <div class="button-container">
+                        <button id="back-to-step1">Back to Upload</button>
+                        <button id="proceed-to-step3" disabled>Proceed to Chat</button>
+                    </div>
+                </div>
+                
+                <!-- Step 3 Content: Interactive Chat -->
+                <div id="step3-content" class="step-content">
+                    <h2>Step 3: Interact with AI Assistant</h2>
+                    <div class="instructions">
+                        <p>Ask the AI assistant about your image classification results and description. You can inquire about:</p>
+                        <ul>
+                            <li>Details about the classification results</li>
+                            <li>Explanations of the image features</li>
+                            <li>More information about detected objects</li>
+                            <li>Suggestions based on the image content</li>
+                        </ul>
+                    </div>
+                    <div id="agent-container">
+                        <!-- Agent will be loaded here dynamically after classification -->
+                        <elevenlabs-convai id="elevenlabs-agent" agent-id="dViYEOHPVrCL4viF7cij" dynamic-variables='{"classification_results": "No classification performed yet", "image_description": "No image analyzed yet"}'></elevenlabs-convai>
+                    </div>
+                    <div class="button-container">
+                        <button id="back-to-step2">Back to Analysis</button>
+                        <button id="reset-process">Start Over</button>
+                    </div>
+                </div>
             </div>
-            <button id="generate-description" style="margin-top: 10px;">Generate Image Description</button>
-        </div>
-        
-        <div class="elevenlabs-container" style="margin-top: 20px;">
-            <h3>ElevenLabs Conversational Agent:</h3>
-            <p>Ask the agent about your image classification results.</p>
-            <div id="agent-container">
-                <!-- Agent will be loaded here dynamically after classification -->
-                <elevenlabs-convai id="elevenlabs-agent" agent-id="dViYEOHPVrCL4viF7cij" dynamic-variables='{"classification_results": "No classification performed yet", "image_description": "No image analyzed yet"}'></elevenlabs-convai>
-            </div>
-            <button id="update-agent" style="margin-top: 10px;">Update Agent with Classification Results</button>
         </div>
     </div>
 
@@ -156,6 +329,42 @@
         // Global variables
         let classificationResult = null;
         let imageDescription = null;
+        
+        // DOM Elements
+        const stepIndicators = [
+            document.getElementById('step1'),
+            document.getElementById('step2'),
+            document.getElementById('step3')
+        ];
+        
+        const stepContents = [
+            document.getElementById('step1-content'),
+            document.getElementById('step2-content'),
+            document.getElementById('step3-content')
+        ];
+        
+        // Navigation functions
+        function showStep(stepNumber) {
+            // Update step indicators
+            stepIndicators.forEach((step, index) => {
+                if (index + 1 < stepNumber) {
+                    step.className = 'step completed';
+                } else if (index + 1 === stepNumber) {
+                    step.className = 'step active';
+                } else {
+                    step.className = 'step';
+                }
+            });
+            
+            // Show appropriate content
+            stepContents.forEach((content, index) => {
+                if (index + 1 === stepNumber) {
+                    content.className = 'step-content active-step';
+                } else {
+                    content.className = 'step-content';
+                }
+            });
+        }
         
         // Preview uploaded image
         document.getElementById('image-upload').addEventListener('change', function(event) {
@@ -166,6 +375,15 @@
                     const preview = document.getElementById('preview');
                     preview.src = e.target.result;
                     preview.style.display = 'block';
+                    document.getElementById('no-image').style.display = 'none';
+                    
+                    // Update image info
+                    document.getElementById('image-info').style.display = 'block';
+                    document.getElementById('image-name').textContent = `Filename: ${file.name}`;
+                    document.getElementById('image-size').textContent = `Size: ${(file.size / 1024).toFixed(2)} KB`;
+                    
+                    // Enable proceed button
+                    document.getElementById('proceed-to-step2').disabled = false;
                 }
                 reader.readAsDataURL(file);
             }
@@ -346,20 +564,22 @@
         // Load Teachable Machine model and classify image
         document.getElementById('classify-button').addEventListener('click', async function() {
             const modelURL = document.getElementById('model-url').value;
-            const imageUpload = document.getElementById('image-upload');
+            const imageElement = document.getElementById('preview');
             const resultElement = document.getElementById('result');
+            const progressBar = document.getElementById('classification-progress-bar');
             
             if (!modelURL) {
                 resultElement.textContent = 'Please enter a model URL.';
                 return;
             }
             
-            if (!imageUpload.files[0]) {
+            if (imageElement.style.display === 'none') {
                 resultElement.textContent = 'Please upload an image first.';
                 return;
             }
             
             resultElement.textContent = 'Loading model and classifying image...';
+            progressBar.style.width = '10%';
             
             try {
                 // Check if TensorFlow.js is loaded
@@ -372,14 +592,18 @@
                 const modelFolderPath = modelURL.substring(0, modelURL.lastIndexOf('/') + 1);
                 
                 resultElement.textContent = 'Loading model... (This may take a few moments)';
+                progressBar.style.width = '30%';
                 
                 try {
                     const model = await tf.loadLayersModel(modelURL);
+                    progressBar.style.width = '50%';
                     
                     // Load metadata
                     resultElement.textContent = 'Loading metadata...';
                     const metadataURL = `${modelFolderPath}metadata.json`;
                     const metadataResponse = await fetch(metadataURL);
+                    
+                    progressBar.style.width = '70%';
                     
                     if (!metadataResponse.ok) {
                         throw new Error(`Failed to fetch metadata: ${metadataResponse.status} ${metadataResponse.statusText}`);
@@ -387,18 +611,20 @@
                     
                     const metadata = await metadataResponse.json();
                     
-                    // Get the image from the file input
-                    const image = document.getElementById('preview');
-                    
                     // Convert the image to a tensor
-                    const tensor = tf.browser.fromPixels(image)
+                    const tensor = tf.browser.fromPixels(imageElement)
                         .resizeNearestNeighbor([metadata.imageSize || 224, metadata.imageSize || 224])
                         .toFloat()
                         .div(tf.scalar(255))
                         .expandDims();
                     
+                    progressBar.style.width = '80%';
+                    
                     // Make prediction
+                    resultElement.textContent = 'Analyzing image...';
                     const prediction = await model.predict(tensor).data();
+                    
+                    progressBar.style.width = '90%';
                     
                     // Process results
                     const results = Array.from(prediction)
@@ -420,14 +646,16 @@
                     resultHTML += '</ul>';
                     
                     resultHTML += '<p><strong>Top prediction:</strong> ' + results[0].className + '</p>';
-                    resultHTML += '<p>The results are stored and can be used for description generation.</p>';
                     
                     resultElement.innerHTML = resultHTML;
+                    progressBar.style.width = '100%';
                     
-                    console.log('Classification result:', classificationResult);
+                    // Enable generate description button
+                    document.getElementById('generate-description').disabled = false;
                     
                 } catch (modelError) {
                     console.error('Model loading error:', modelError);
+                    progressBar.style.width = '0%';
                     
                     // Provide more specific error messages
                     if (modelError.message.includes('fetch')) {
@@ -455,6 +683,7 @@
                         <p>Please check your model URL, internet connection, and try again.</p>
                     `;
                 }
+                progressBar.style.width = '0%';
                 console.error('Classification error:', error);
             }
         });
@@ -462,7 +691,7 @@
         // Handle generate description button click
         document.getElementById('generate-description').addEventListener('click', async function() {
             if (!classificationResult) {
-                alert('Please classify an image first');
+                alert('Please classify the image first.');
                 return;
             }
             
@@ -495,6 +724,10 @@
                 
                 // Display the description
                 descriptionElement.textContent = imageDescription;
+                
+                // Enable proceed button
+                document.getElementById('proceed-to-step3').disabled = false;
+                
             } catch (error) {
                 descriptionElement.textContent = `Error generating description: ${error.message}`;
                 console.error('Description generation error:', error);
@@ -504,10 +737,10 @@
             }
         });
         
-        // Handle updating the agent button click
-        document.getElementById('update-agent').addEventListener('click', function() {
+        // Function to update agent with classification results and description
+        function updateAgent() {
             if (!classificationResult) {
-                alert('Please classify an image first');
+                console.warn('No classification result to update the agent with.');
                 return;
             }
             
@@ -549,45 +782,12 @@
                 // Get the existing agent element
                 const agentElement = document.getElementById('elevenlabs-agent');
                 
-                // Update the dynamic-variables attribute without recreating the element
+                // Update the dynamic-variables attribute
                 agentElement.setAttribute('dynamic-variables', JSON.stringify(dynamicVars));
-                
-                // Display a success message
-                alert('Agent updated with classification results and image description. You can now ask about:\n\n' + 
-                      '- The image classification results\n' + 
-                      '- The image description\n' +
-                      '- The top prediction (' + topClass + ')\n' + 
-                      '- Details about any specific class');
                 
             } catch (error) {
                 console.error("Error updating agent:", error);
-                alert("There was a problem updating the agent. Please try again.");
             }
-        });
+        }
         
-        // Show/hide API key input based on selected provider
-        document.getElementById('ai-provider').addEventListener('change', function() {
-            const provider = this.value;
-            const apiKeyContainer = document.getElementById('api-key-container');
-            
-            if (provider === 'local') {
-                apiKeyContainer.style.display = 'none';
-            } else {
-                apiKeyContainer.style.display = 'block';
-            }
-        });
-        
-        // Set initial visibility of API key field
-        window.addEventListener('DOMContentLoaded', function() {
-            const provider = document.getElementById('ai-provider').value;
-            const apiKeyContainer = document.getElementById('api-key-container');
-            
-            if (provider === 'local') {
-                apiKeyContainer.style.display = 'none';
-            } else {
-                apiKeyContainer.style.display = 'block';
-            }
-        });
-    </script>
-</body>
-</html>
+        // Event listeners
