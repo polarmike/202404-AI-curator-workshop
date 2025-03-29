@@ -18,128 +18,262 @@
     <script src="https://elevenlabs.io/convai-widget/index.js" async type="text/javascript"></script>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            max-width: 1000px;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
+            background-color: #121212;
+            color: #e0e0e0;
         }
+        
         .container {
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            gap: 25px;
         }
+        
+        h1, h2, h3, h4 {
+            color: #ffffff;
+            font-weight: 500;
+        }
+        
+        h1 {
+            text-align: center;
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #737DFE 0%, #FFCAC9 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            padding: 10px 0;
+        }
+        
         /* Step indicator styles */
         .steps-container {
             display: flex;
             justify-content: space-between;
             margin-bottom: 30px;
         }
+        
         .step {
             flex: 1;
             text-align: center;
             padding: 15px;
-            background-color: #f0f0f0;
-            border-radius: 5px;
+            background-color: #1e1e1e;
+            border-radius: 10px;
             position: relative;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+            margin: 0 8px;
         }
+        
+        .step h3 {
+            margin-top: 0;
+        }
+        
+        .step p {
+            margin-bottom: 0;
+        }
+        
         .step.active {
             background-color: #4CAF50;
-            color: white;
-            font-weight: bold;
+            transform: translateY(-5px);
         }
+        
         .step.completed {
-            background-color: #8BC34A;
-            color: white;
+            background-color: #2c3e50;
         }
+        
         .step:not(:last-child):after {
             content: '';
             position: absolute;
             top: 50%;
-            right: -15px;
+            right: -25px;
             width: 30px;
             height: 2px;
-            background-color: #ddd;
+            background-color: #444;
             z-index: -1;
         }
-        /* Main content area with sidebar layout */
+        
+        /* Main content area with new layout */
         .main-content {
             display: flex;
-            gap: 20px;
+            flex-direction: column;
+            gap: 25px;
+            background-color: #1e1e1e;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
         }
-        .sidebar {
-            width: 300px;
-            padding: 15px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            background-color: #f9f9f9;
+        
+        /* Image section with upload button */
+        .image-section {
+            display: flex;
+            gap: 20px;
+            padding: 20px;
+            background-color: #252525;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .image-preview {
+            flex: 1;
             display: flex;
             flex-direction: column;
             align-items: center;
+            justify-content: center;
         }
-        .content-area {
+        
+        .image-controls {
             flex: 1;
-            padding: 15px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            background-color: #f9f9f9;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 15px;
         }
+        
+        /* Model section with classify button */
+        .model-section {
+            display: flex;
+            gap: 20px;
+            padding: 20px;
+            background-color: #252525;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .model-input {
+            flex: 2;
+        }
+        
+        .model-controls {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
         #preview {
-            max-width: 250px;
-            max-height: 250px;
-            margin-top: 10px;
-            border-radius: 5px;
-            box-shadow: 0 3px 6px rgba(0,0,0,0.16);
+            max-width: 300px;
+            max-height: 300px;
+            border-radius: 10px;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s ease;
         }
+        
+        #preview:hover {
+            transform: scale(1.03);
+        }
+        
+        .no-image-placeholder {
+            width: 300px;
+            height: 250px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #2a2a2a;
+            border: 2px dashed #555;
+            border-radius: 10px;
+            color: #888;
+            font-size: 16px;
+        }
+        
         .preview-container {
             text-align: center;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
         }
+        
         .step-content {
             display: none;
         }
+        
         .active-step {
             display: block;
         }
+        
         button {
-            padding: 10px 15px;
-            background-color: #2196F3;
+            padding: 12px 20px;
+            background: linear-gradient(90deg, #3a7bd5 0%, #00d2ff 100%);
             color: white;
             border: none;
-            border-radius: 4px;
+            border-radius: 8px;
             cursor: pointer;
             font-size: 14px;
             margin: 5px;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
+        
         button:hover {
-            background-color: #0b7dda;
+            background: linear-gradient(90deg, #3a7bd5 0%, #3a6073 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
         }
+        
+        button.disabled, button:disabled {
+            background: linear-gradient(90deg, #5a5a5a 0%, #3a3a3a 100%);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
         .button-container {
             display: flex;
             justify-content: space-between;
-            margin-top: 20px;
+            margin-top: 25px;
         }
-        button.disabled {
-            background-color: #cccccc;
-            cursor: not-allowed;
-        }
-        input[type="file"], input[type="text"], select {
-            padding: 10px;
+        
+        input[type="file"] {
+            padding: 12px;
             margin: 5px 0;
             width: 100%;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+            border: 1px solid #444;
+            border-radius: 8px;
+            background-color: #333;
+            color: #e0e0e0;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
         }
+        
+        input[type="text"], input[type="password"], select {
+            padding: 12px;
+            margin: 5px 0;
+            width: 100%;
+            border: 1px solid #444;
+            border-radius: 8px;
+            background-color: #333;
+            color: #e0e0e0;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #ccc;
+        }
+        
         .instructions {
-            background-color: #e8f4ff;
-            padding: 15px;
-            border-radius: 5px;
-            margin-bottom: 20px;
+            background-color: #2a2a2a;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            border-left: 4px solid #4CAF50;
         }
+        
         .result-container {
             margin-top: 20px;
+            background-color: #252525;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
+        
         .loader {
-            border: 4px solid #f3f3f3;
+            border: 4px solid #333;
             border-top: 4px solid #3498db;
             border-radius: 50%;
             width: 20px;
@@ -148,42 +282,88 @@
             display: inline-block;
             margin-left: 10px;
         }
+        
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        
         .hidden {
             display: none;
         }
+        
         .api-settings {
-            background-color: #f0f0f0;
+            background-color: #252525;
             padding: 15px;
-            border-radius: 5px;
+            border-radius: 10px;
             margin: 10px 0;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
+        
         .progress-indicator {
-            height: 4px;
+            height: 6px;
             width: 100%;
-            background-color: #f0f0f0;
-            margin-top: 10px;
+            background-color: #2a2a2a;
+            margin-top: 15px;
+            border-radius: 3px;
+            overflow: hidden;
         }
+        
         .progress-bar {
             height: 100%;
             width: 0;
-            background-color: #4CAF50;
+            background: linear-gradient(90deg, #00d2ff 0%, #3a7bd5 100%);
             transition: width 0.3s ease;
+            border-radius: 3px;
         }
-        .no-image-placeholder {
-            width: 250px;
-            height: 200px;
+        
+        ul {
+            list-style-type: none;
+            padding-left: 0;
+        }
+        
+        ul li {
+            padding: 8px 10px;
+            margin-bottom: 5px;
+            background-color: #333;
+            border-radius: 5px;
+        }
+        
+        #description-container, #result-container {
+            background-color: #252525;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            min-height: 100px;
+        }
+        
+        .section-title {
             display: flex;
             align-items: center;
-            justify-content: center;
-            background-color: #f0f0f0;
-            border: 2px dashed #ccc;
-            border-radius: 5px;
-            color: #888;
-            font-size: 16px;
+            margin-bottom: 15px;
+        }
+        
+        .section-title:before, .section-title:after {
+            content: "";
+            flex: 1;
+            border-bottom: 1px solid #444;
+            margin: 0 10px;
+        }
+        
+        #image-info {
+            margin-top: 15px;
+            font-size: 14px;
+            color: #aaa;
+        }
+        
+        /* Animation for transitions */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .active-step {
+            animation: fadeIn 0.5s ease-out;
         }
     </style>
 </head>
@@ -207,119 +387,145 @@
             </div>
         </div>
         
-        <!-- Main content area with sidebar layout -->
+        <!-- Main content area with new layout -->
         <div class="main-content">
-            <!-- Sidebar with image preview -->
-            <div class="sidebar">
-                <h3>Image Preview</h3>
-                <div class="preview-container">
-                    <div id="no-image" class="no-image-placeholder">
-                        <p>No image uploaded</p>
+            <!-- Step 1 Content: Upload Image -->
+            <div id="step1-content" class="step-content active-step">
+                <h2>Step 1: Upload Your Image</h2>
+                
+                <div class="instructions">
+                    <h3>Instructions:</h3>
+                    <p>Select an image file to upload for classification. The model works best with clear images where the subject is prominently visible.</p>
+                </div>
+                
+                <!-- Image section with upload button -->
+                <div class="image-section">
+                    <div class="image-preview">
+                        <h3>Image Preview</h3>
+                        <div class="preview-container">
+                            <div id="no-image" class="no-image-placeholder">
+                                <p>No image uploaded</p>
+                            </div>
+                            <img id="preview" src="" alt="" style="display: none;">
+                        </div>
+                        <div id="image-info" style="display: none;">
+                            <p id="image-name">Filename: </p>
+                            <p id="image-size">Size: </p>
+                        </div>
                     </div>
-                    <img id="preview" src="" alt="" style="display: none;">
-                </div>
-                <div id="image-info" style="display: none;">
-                    <p id="image-name">Filename: </p>
-                    <p id="image-size">Size: </p>
-                </div>
-                <div class="model-input" style="width: 100%;">
-                    <label for="model-url">Teachable Machine Model URL:</label>
-                    <input type="text" id="model-url" placeholder="https://teachablemachine.withgoogle.com/models/YOUR_MODEL_ID/model.json">
-                </div>
-            </div>
-            
-            <!-- Main content area -->
-            <div class="content-area">
-                <!-- Step 1 Content: Upload Image -->
-                <div id="step1-content" class="step-content active-step">
-                    <h2>Step 1: Upload Your Image</h2>
-                    <div class="instructions">
-                        <h3>Instructions:</h3>
-                        <p>Select an image file to upload for classification. The model works best with clear images where the subject is prominently visible.</p>
-                        <h3>Getting your Teachable Machine model URL:</h3>
-                        <ol>
-                            <li>Go to your model on <a href="https://teachablemachine.withgoogle.com/" target="_blank">Teachable Machine</a></li>
-                            <li>Click "Export Model"</li>
-                            <li>Select "Tensorflow.js" tab</li>
-                            <li>Click "Upload my model" to host it on Teachable Machine servers</li>
-                            <li>Copy the provided model URL</li>
-                            <li>Add "model.json" to the end of the URL if not already present</li>
-                        </ol>
-                    </div>
-                    <div class="upload-container">
+                    
+                    <div class="image-controls">
+                        <h3>Upload Image</h3>
                         <label for="image-upload">Select Image File:</label>
                         <input type="file" id="image-upload" accept="image/*">
                     </div>
-                    <div class="button-container">
-                        <div></div> <!-- Empty div for spacing -->
-                        <button id="proceed-to-step2" disabled>Proceed to Analysis</button>
+                </div>
+                
+                <!-- Model section with model URL and classify button -->
+                <div class="model-section">
+                    <div class="model-input">
+                        <h3>Model Configuration</h3>
+                        <div class="instructions">
+                            <h4>Getting your Teachable Machine model URL:</h4>
+                            <ol>
+                                <li>Go to your model on <a href="https://teachablemachine.withgoogle.com/" target="_blank" style="color: #4CAF50;">Teachable Machine</a></li>
+                                <li>Click "Export Model"</li>
+                                <li>Select "Tensorflow.js" tab</li>
+                                <li>Click "Upload my model" to host it on Teachable Machine servers</li>
+                                <li>Copy the provided model URL</li>
+                            </ol>
+                        </div>
+                        <label for="model-url">Teachable Machine Model URL:</label>
+                        <input type="text" id="model-url" placeholder="https://teachablemachine.withgoogle.com/models/YOUR_MODEL_ID/model.json">
                     </div>
                 </div>
                 
-                <!-- Step 2 Content: Process & Analyze -->
-                <div id="step2-content" class="step-content">
-                    <h2>Step 2: Process & Analyze Image</h2>
-                    <div class="analysis-options">
+                <div class="button-container">
+                    <div></div> <!-- Empty div for spacing -->
+                    <button id="proceed-to-step2" disabled>Proceed to Analysis</button>
+                </div>
+            </div>
+            
+            <!-- Step 2 Content: Process & Analyze -->
+            <div id="step2-content" class="step-content">
+                <h2>Step 2: Process & Analyze Image</h2>
+                
+                <!-- Image section with image preview -->
+                <div class="image-section">
+                    <div class="image-preview">
+                        <h3>Image Preview</h3>
+                        <div class="preview-container" id="step2-preview-container">
+                            <!-- Preview will be cloned here -->
+                        </div>
+                    </div>
+                    
+                    <div class="model-input">
                         <h3>Classification</h3>
+                        
+                        <button id="classify-button" class="classify-button">Classify Image</button>
+                        
                         <div id="classification-progress" class="progress-indicator">
                             <div id="classification-progress-bar" class="progress-bar"></div>
                         </div>
+                        
                         <div id="result-container" class="result-container">
                             <p id="result">Click "Classify Image" to see results.</p>
                         </div>
-                        <button id="classify-button">Classify Image</button>
-                        
-                        <h3>Image Description</h3>
-                        <div class="api-settings">
-                            <h4>External AI Provider Settings</h4>
-                            <div>
-                                <label for="ai-provider">Select AI Provider:</label>
-                                <select id="ai-provider">
-                                    <option value="local">Local (Basic Description)</option>
-                                    <option value="openai">OpenAI (GPT-4 Vision)</option>
-                                    <option value="deepseek">DeepSeek AI</option>
-                                </select>
-                            </div>
-                            <div id="api-key-container" style="display: none;">
-                                <label for="api-key">API Key:</label>
-                                <input type="password" id="api-key" placeholder="Enter your API key">
-                            </div>
-                        </div>
-                        
-                        <div id="description-container" class="result-container">
-                            <p id="image-description">Click "Generate Description" to analyze the image.</p>
-                            <div id="description-loader" style="display: none;">
-                                <span class="loader"></span> Generating description...
-                            </div>
-                        </div>
-                        <button id="generate-description" disabled>Generate Image Description</button>
-                    </div>
-                    <div class="button-container">
-                        <button id="back-to-step1">Back to Upload</button>
-                        <button id="proceed-to-step3" disabled>Proceed to Chat</button>
                     </div>
                 </div>
                 
-                <!-- Step 3 Content: Interactive Chat -->
-                <div id="step3-content" class="step-content">
-                    <h2>Step 3: Interact with AI Assistant</h2>
-                    <div class="instructions">
-                        <p>Ask the AI assistant about your image classification results and description. You can inquire about:</p>
-                        <ul>
-                            <li>Details about the classification results</li>
-                            <li>Explanations of the image features</li>
-                            <li>More information about detected objects</li>
-                            <li>Suggestions based on the image content</li>
-                        </ul>
+                <h3 class="section-title">Image Description</h3>
+                
+                <div class="api-settings">
+                    <h4>External AI Provider Settings</h4>
+                    <div>
+                        <label for="ai-provider">Select AI Provider:</label>
+                        <select id="ai-provider">
+                            <option value="local">Local (Basic Description)</option>
+                            <option value="openai">OpenAI (GPT-4 Vision)</option>
+                            <option value="deepseek">DeepSeek AI</option>
+                        </select>
                     </div>
-                    <div id="agent-container">
-                        <!-- Agent will be loaded here dynamically after classification -->
-                        <elevenlabs-convai id="elevenlabs-agent" agent-id="dViYEOHPVrCL4viF7cij" dynamic-variables='{"classification_results": "No classification performed yet", "image_description": "No image analyzed yet"}'></elevenlabs-convai>
+                    <div id="api-key-container" style="display: none;">
+                        <label for="api-key">API Key:</label>
+                        <input type="password" id="api-key" placeholder="Enter your API key">
                     </div>
-                    <div class="button-container">
-                        <button id="back-to-step2">Back to Analysis</button>
-                        <button id="reset-process">Start Over</button>
+                </div>
+                
+                <div id="description-container" class="result-container">
+                    <p id="image-description">Click "Generate Description" to analyze the image.</p>
+                    <div id="description-loader" style="display: none;">
+                        <span class="loader"></span> Generating description...
                     </div>
+                </div>
+                
+                <button id="generate-description" disabled>Generate Image Description</button>
+                
+                <div class="button-container">
+                    <button id="back-to-step1">Back to Upload</button>
+                    <button id="proceed-to-step3" disabled>Proceed to Chat</button>
+                </div>
+            </div>
+            
+            <!-- Step 3 Content: Interactive Chat -->
+            <div id="step3-content" class="step-content">
+                <h2>Step 3: Interact with AI Assistant</h2>
+                <div class="instructions">
+                    <p>Ask the AI assistant about your image classification results and description. You can inquire about:</p>
+                    <ul>
+                        <li>Details about the classification results</li>
+                        <li>Explanations of the image features</li>
+                        <li>More information about detected objects</li>
+                        <li>Suggestions based on the image content</li>
+                    </ul>
+                </div>
+                <div id="agent-container">
+                    <!-- Agent will be loaded here dynamically after classification -->
+                    <elevenlabs-convai id="elevenlabs-agent" agent-id="dViYEOHPVrCL4viF7cij" dynamic-variables='{"classification_results": "No classification performed yet", "image_description": "No image analyzed yet"}'></elevenlabs-convai>
+                </div>
+                <div class="button-container">
+                    <button id="back-to-step2">Back to Analysis</button>
+                    <button id="reset-process">Start Over</button>
                 </div>
             </div>
         </div>
@@ -364,6 +570,20 @@
                     content.className = 'step-content';
                 }
             });
+            
+            // Clone the preview image to step 2 when moving to that step
+            if (stepNumber === 2) {
+                const previewContainer = document.getElementById('step2-preview-container');
+                previewContainer.innerHTML = ''; // Clear previous contents
+                
+                if (document.getElementById('preview').style.display !== 'none') {
+                    const previewClone = document.getElementById('preview').cloneNode(true);
+                    previewContainer.appendChild(previewClone);
+                } else {
+                    const noImageClone = document.getElementById('no-image').cloneNode(true);
+                    previewContainer.appendChild(noImageClone);
+                }
+            }
         }
         
         // Preview uploaded image
@@ -564,7 +784,7 @@
         // Load Teachable Machine model and classify image
         document.getElementById('classify-button').addEventListener('click', async function() {
             const modelURL = document.getElementById('model-url').value;
-            const imageElement = document.getElementById('preview');
+            const imageElement = document.querySelector('#step2-preview-container img') || document.getElementById('preview');
             const resultElement = document.getElementById('result');
             const progressBar = document.getElementById('classification-progress-bar');
             
@@ -573,7 +793,7 @@
                 return;
             }
             
-            if (imageElement.style.display === 'none') {
+            if (imageElement.style.display === 'none' || !imageElement.src) {
                 resultElement.textContent = 'Please upload an image first.';
                 return;
             }
@@ -588,7 +808,6 @@
                 }
                 
                 // Load the model
-                const modelURL = document.getElementById('model-url').value;
                 const modelFolderPath = modelURL.substring(0, modelURL.lastIndexOf('/') + 1);
                 
                 resultElement.textContent = 'Loading model... (This may take a few moments)';
@@ -641,7 +860,8 @@
                     let resultHTML = '<h3>Classification Results:</h3>';
                     resultHTML += '<ul>';
                     results.forEach(result => {
-                        resultHTML += `<li>${result.className}: ${(result.probability * 100).toFixed(2)}%</li>`;
+                        const percentage = (result.probability * 100).toFixed(2);
+                        resultHTML += `<li>${result.className}: <strong>${percentage}%</strong></li>`;
                     });
                     resultHTML += '</ul>';
                     
@@ -652,212 +872,3 @@
                     
                     // Enable generate description button
                     document.getElementById('generate-description').disabled = false;
-                    
-                } catch (modelError) {
-                    console.error('Model loading error:', modelError);
-                    progressBar.style.width = '0%';
-                    
-                    // Provide more specific error messages
-                    if (modelError.message.includes('fetch')) {
-                        resultElement.innerHTML = `
-                            <p>Error: Failed to fetch the model or metadata.</p>
-                            <p><strong>Troubleshooting steps:</strong></p>
-                            <ol>
-                                <li>Check that your Teachable Machine model URL is correct and ends with "model.json"</li>
-                                <li>Ensure your model is publicly accessible (not private)</li>
-                                <li>Verify your internet connection is working</li>
-                                <li>If using a custom-hosted model, ensure CORS is enabled on your server</li>
-                            </ol>
-                            <p>Detailed error: ${modelError.message}</p>
-                        `;
-                    } else {
-                        resultElement.innerHTML = `Error: ${modelError.message}<br>Check the console for more details.`;
-                    }
-                    
-                    throw modelError; // Re-throw to prevent further processing
-                }
-            } catch (error) {
-                if (!resultElement.innerHTML.includes('Troubleshooting')) {
-                    resultElement.innerHTML = `
-                        <p>Error: ${error.message}</p>
-                        <p>Please check your model URL, internet connection, and try again.</p>
-                    `;
-                }
-                progressBar.style.width = '0%';
-                console.error('Classification error:', error);
-            }
-        });
-        
-        // Handle generate description button click
-        document.getElementById('generate-description').addEventListener('click', async function() {
-            if (!classificationResult) {
-                alert('Please classify the image first.');
-                return;
-            }
-            
-            const imageElement = document.getElementById('preview');
-            if (!imageElement || !imageElement.complete || imageElement.naturalHeight === 0) {
-                alert('Image not fully loaded. Please wait a moment and try again.');
-                return;
-            }
-            
-            const provider = document.getElementById('ai-provider').value;
-            const descriptionElement = document.getElementById('image-description');
-            const loader = document.getElementById('description-loader');
-            
-            // Show the loader
-            loader.style.display = 'block';
-            descriptionElement.textContent = 'Generating description...';
-            
-            try {
-                switch (provider) {
-                    case 'openai':
-                        imageDescription = await getOpenAIDescription(imageElement, classificationResult);
-                        break;
-                    case 'deepseek':
-                        imageDescription = await getDeepSeekDescription(imageElement, classificationResult);
-                        break;
-                    default:
-                        // Local generation (no API call)
-                        imageDescription = generateLocalDescription(imageElement, classificationResult);
-                }
-                
-                // Display the description
-                descriptionElement.textContent = imageDescription;
-                
-                // Enable proceed button
-                document.getElementById('proceed-to-step3').disabled = false;
-                
-            } catch (error) {
-                descriptionElement.textContent = `Error generating description: ${error.message}`;
-                console.error('Description generation error:', error);
-            } finally {
-                // Hide the loader
-                loader.style.display = 'none';
-            }
-        });
-        
-        // Function to update agent with classification results and description
-        function updateAgent() {
-            if (!classificationResult) {
-                console.warn('No classification result to update the agent with.');
-                return;
-            }
-            
-            // If no description has been generated yet, generate one now
-            if (!imageDescription) {
-                const imageElement = document.getElementById('preview');
-                if (imageElement && imageElement.complete && imageElement.naturalHeight > 0) {
-                    imageDescription = generateLocalDescription(imageElement, classificationResult);
-                    document.getElementById('image-description').textContent = imageDescription;
-                } else {
-                    imageDescription = "Image description could not be generated automatically.";
-                }
-            }
-            
-            // Format the classification results as a clean string
-            let formattedResults = '';
-            classificationResult.forEach((result, index) => {
-                const percentage = (result.probability * 100).toFixed(1);
-                formattedResults += `${result.className}: ${percentage}%`;
-                if (index < classificationResult.length - 1) {
-                    formattedResults += ', ';
-                }
-            });
-            
-            // Get the top prediction
-            const topClass = classificationResult[0].className;
-            const topProbability = (classificationResult[0].probability * 100).toFixed(1);
-            
-            // Create a dynamic variables object
-            const dynamicVars = {
-                classification_results: formattedResults,
-                top_class: topClass,
-                top_probability: topProbability,
-                classification_time: new Date().toLocaleTimeString(),
-                image_description: imageDescription
-            };
-            
-            try {
-                // Get the existing agent element
-                const agentElement = document.getElementById('elevenlabs-agent');
-                
-                // Update the dynamic-variables attribute
-                agentElement.setAttribute('dynamic-variables', JSON.stringify(dynamicVars));
-                
-            } catch (error) {
-                console.error("Error updating agent:", error);
-            }
-        }
-        
-        // Event listeners
-        
-        // Navigation button listeners
-        document.getElementById('proceed-to-step2').addEventListener('click', function() {
-            showStep(2);
-        });
-        
-        document.getElementById('back-to-step1').addEventListener('click', function() {
-            showStep(1);
-        });
-        
-        document.getElementById('proceed-to-step3').addEventListener('click', function() {
-            // Update the agent before proceeding
-            updateAgent();
-            showStep(3);
-        });
-        
-        document.getElementById('back-to-step2').addEventListener('click', function() {
-            showStep(2);
-        });
-        
-        document.getElementById('reset-process').addEventListener('click', function() {
-            // Reset all data
-            classificationResult = null;
-            imageDescription = null;
-            
-            // Clear UI elements
-            document.getElementById('preview').src = '';
-            document.getElementById('preview').style.display = 'none';
-            document.getElementById('no-image').style.display = 'block';
-            document.getElementById('image-info').style.display = 'none';
-            document.getElementById('image-upload').value = '';
-            document.getElementById('result').textContent = 'Click "Classify Image" to see results.';
-            document.getElementById('image-description').textContent = 'Click "Generate Description" to analyze the image.';
-            document.getElementById('classification-progress-bar').style.width = '0%';
-            
-            // Reset buttons
-            document.getElementById('proceed-to-step2').disabled = true;
-            document.getElementById('generate-description').disabled = true;
-            document.getElementById('proceed-to-step3').disabled = true;
-            
-            // Go back to step 1
-            showStep(1);
-        });
-        
-        // Show/hide API key input based on selected provider
-        document.getElementById('ai-provider').addEventListener('change', function() {
-            const provider = this.value;
-            const apiKeyContainer = document.getElementById('api-key-container');
-            
-            if (provider === 'local') {
-                apiKeyContainer.style.display = 'none';
-            } else {
-                apiKeyContainer.style.display = 'block';
-            }
-        });
-        
-        // Set initial visibility of API key field
-        window.addEventListener('DOMContentLoaded', function() {
-            const provider = document.getElementById('ai-provider').value;
-            const apiKeyContainer = document.getElementById('api-key-container');
-            
-            if (provider === 'local') {
-                apiKeyContainer.style.display = 'none';
-            } else {
-                apiKeyContainer.style.display = 'block';
-            }
-        });
-    </script>
-</body>
-</html>
