@@ -49,8 +49,12 @@ export async function classifyImage() {
             throw new Error('Please enter a valid Teachable Machine model URL');
         }
 
-        // Load the model
-        const model = await tf.loadLayersModel(modelUrl);
+        // Use a CORS proxy to fetch the model
+        const corsProxyUrl = 'https://cors-anywhere.herokuapp.com/';
+        const proxyModelUrl = corsProxyUrl + modelUrl;
+        
+        // Load the model with CORS proxy
+        const model = await tf.loadLayersModel(proxyModelUrl);
         
         // Preprocess the image
         const tensor = tf.browser.fromPixels(preview)
@@ -96,6 +100,12 @@ export async function classifyImage() {
         resultDiv.innerHTML = `
             <p class="error">Error: ${error.message}</p>
             <p>Please make sure you have entered a valid Teachable Machine model URL and try again.</p>
+            <p>Note: If you're experiencing CORS issues, you may need to:</p>
+            <ol>
+                <li>Use a CORS proxy service</li>
+                <li>Host the model on your own server</li>
+                <li>Contact Google support to enable CORS for your domain</li>
+            </ol>
         `;
     }
 }
