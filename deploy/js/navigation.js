@@ -67,6 +67,6 @@ export function resetUI() {
     document.getElementById('image-info').style.display = 'none';
 
     // Reset results
-    document.getElementById('result').innerHTML = '';
-    document.getElementById('description').textContent = '';
+    document.getElementById('result').innerHTML = '<p>Click "Classify Image" to see results.</p>';
+    document.getElementById('description').textContent = 'Click "Generate Description" to analyze the image.';
 } 

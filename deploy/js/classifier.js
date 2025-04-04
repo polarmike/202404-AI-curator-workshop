@@ -13,13 +13,23 @@ export function getImageDescription() {
 }
 
 export function showLoading() {
-    document.getElementById('loading-spinner').style.display = 'flex';
+    document.getElementById('loading-spinner').style.display = 'block';
     document.getElementById('result').style.display = 'none';
 }
 
 export function hideLoading() {
     document.getElementById('loading-spinner').style.display = 'none';
     document.getElementById('result').style.display = 'block';
+}
+
+export function showDescriptionLoading() {
+    document.getElementById('loading-spinner-description').style.display = 'block';
+    document.getElementById('description').style.display = 'none';
+}
+
+export function hideDescriptionLoading() {
+    document.getElementById('loading-spinner-description').style.display = 'none';
+    document.getElementById('description').style.display = 'block';
 }
 
 export async function classifyImage() {
@@ -33,14 +43,34 @@ export async function classifyImage() {
 
     try {
         const imageData = getImageAsBase64(preview);
+        const modelUrl = document.getElementById('model-url').value;
         
-        // Simulate API call for classification
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        if (!modelUrl) {
+            throw new Error('Please enter a valid Teachable Machine model URL');
+        }
+
+        // Load the model
+        const model = await tf.loadLayersModel(modelUrl);
         
-        // Mock classification results
+        // Preprocess the image
+        const tensor = tf.browser.fromPixels(preview)
+            .resizeBilinear([224, 224])
+            .toFloat()
+            .expandDims();
+        
+        // Get predictions
+        const predictions = await model.predict(tensor).data();
+        
+        // Get top 3 predictions
+        const top3 = Array.from(predictions)
+            .map((p, i) => ({ probability: p, index: i }))
+            .sort((a, b) => b.probability - a.probability)
+            .slice(0, 3);
+
+        // Store results
         classificationResults = {
-            labels: ['Nature', 'Landscape', 'Mountain'],
-            confidence: [0.95, 0.85, 0.75]
+            labels: top3.map(p => `Class ${p.index}`),
+            confidence: top3.map(p => p.probability)
         };
 
         // Update UI with results
@@ -56,12 +86,17 @@ export async function classifyImage() {
 
         // Enable proceed button
         document.getElementById('proceed-to-step3').disabled = false;
+        document.getElementById('generate-description-btn').disabled = false;
         
         hideLoading();
     } catch (error) {
         console.error('Error during classification:', error);
         hideLoading();
-        alert('An error occurred during classification. Please try again.');
+        const resultDiv = document.getElementById('result');
+        resultDiv.innerHTML = `
+            <p class="error">Error: ${error.message}</p>
+            <p>Please make sure you have entered a valid Teachable Machine model URL and try again.</p>
+        `;
     }
 }
 
@@ -71,7 +106,7 @@ export async function generateDescription() {
         return;
     }
 
-    showLoading();
+    showDescriptionLoading();
 
     try {
         // Simulate API call for description generation
@@ -84,10 +119,11 @@ export async function generateDescription() {
         const descriptionDiv = document.getElementById('description');
         descriptionDiv.textContent = imageDescription;
         
-        hideLoading();
+        hideDescriptionLoading();
     } catch (error) {
         console.error('Error generating description:', error);
-        hideLoading();
-        alert('An error occurred while generating the description. Please try again.');
+        hideDescriptionLoading();
+        const descriptionDiv = document.getElementById('description');
+        descriptionDiv.textContent = `Error: ${error.message}`;
     }
 } 

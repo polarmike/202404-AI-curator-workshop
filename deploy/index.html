@@ -16,15 +16,15 @@
         
         <!-- Step indicators -->
         <div class="steps-container">
-            <div id="step1" class="step active">
+            <div class="step active">
                 <h3>Step 1</h3>
                 <p>Upload Image</p>
             </div>
-            <div id="step2" class="step">
+            <div class="step">
                 <h3>Step 2</h3>
                 <p>Process & Analyze</p>
             </div>
-            <div id="step3" class="step">
+            <div class="step">
                 <h3>Step 3</h3>
                 <p>Interactive Chat</p>
             </div>
@@ -33,7 +33,7 @@
         <!-- Main content area with new layout -->
         <div class="main-content">
             <!-- Step 1 Content: Upload Image -->
-            <div id="step1-content" class="step-content active-step">
+            <div id="step1" class="step-content active-step">
                 <h2>Step 1: Upload Your Image</h2>
                 
                 <div class="instructions">
@@ -65,18 +65,18 @@
                             <label for="model-url">Teachable Machine Model URL:</label>
                             <input type="text" id="model-url" placeholder="https://teachablemachine.withgoogle.com/models/YOUR_MODEL_ID/model.json">
                         </div>
-                        <button id="classify-button" class="classify-button">Classify Image</button>
+                        <button id="classify-btn" class="classify-button">Classify Image</button>
                     </div>
                 </div>
                 
                 <div class="button-container">
                     <div></div> <!-- Empty div for spacing -->
-                    <button id="proceed-to-step2">Proceed to Analysis</button>
+                    <button id="proceed-to-step2" disabled>Proceed to Analysis</button>
                 </div>
             </div>
             
             <!-- Step 2 Content: Process & Analyze -->
-            <div id="step2-content" class="step-content">
+            <div id="step2" class="step-content">
                 <h2>Step 2: Process & Analyze Image</h2>
                 
                 <!-- Image section with image preview -->
@@ -95,7 +95,10 @@
                         </div>
                         
                         <div id="result-container" class="result-container">
-                            <p id="result">Click "Classify Image" to see results.</p>
+                            <div id="loading-spinner" class="loading-spinner"></div>
+                            <div id="result">
+                                <p>Click "Classify Image" to see results.</p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -119,13 +122,11 @@
                 </div>
                 
                 <div id="description-container" class="result-container">
-                    <p id="image-description">Click "Generate Description" to analyze the image.</p>
-                    <div id="description-loader" style="display: none;">
-                        <span class="loader"></span> Generating description...
-                    </div>
+                    <div id="loading-spinner-description" class="loading-spinner"></div>
+                    <p id="description">Click "Generate Description" to analyze the image.</p>
                 </div>
                 
-                <button id="generate-description" disabled>Generate Image Description</button>
+                <button id="generate-description-btn" disabled>Generate Image Description</button>
                 
                 <div class="button-container">
                     <button id="back-to-step1">Back to Upload</button>
@@ -134,7 +135,7 @@
             </div>
             
             <!-- Step 3 Content: Interactive Chat -->
-            <div id="step3-content" class="step-content">
+            <div id="step3" class="step-content">
                 <h2>Step 3: Interact with AI Assistant</h2>
                 
                 <!-- Keep the image visible in step 3 as well -->
@@ -165,13 +166,10 @@
                 </div>
                 <div class="button-container">
                     <button id="back-to-step2">Back to Analysis</button>
-                    <button id="reset-process">Start Over</button>
+                    <button id="reset-btn">Start Over</button>
                 </div>
             </div>
         </div>
     </div>
-
-    <!-- Scripts -->
-    <script src="script.js"></script>
 </body>
 </html>

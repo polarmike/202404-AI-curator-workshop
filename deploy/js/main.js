@@ -5,19 +5,46 @@ import { setupNavigation, resetUI } from './navigation.js';
 
 // Initialize the application
 document.addEventListener('DOMContentLoaded', function() {
-    // Setup event listeners
-    setupImageUploadHandler();
-    setupNavigation();
+    try {
+        // Setup event listeners
+        setupImageUploadHandler();
+        setupNavigation();
 
-    // Setup classification button
-    document.getElementById('classify-btn').addEventListener('click', classifyImage);
+        // Setup classification button
+        const classifyBtn = document.getElementById('classify-btn');
+        if (classifyBtn) {
+            classifyBtn.addEventListener('click', classifyImage);
+        }
 
-    // Setup description generation button
-    document.getElementById('generate-description-btn').addEventListener('click', generateDescription);
+        // Setup description generation button
+        const generateDescriptionBtn = document.getElementById('generate-description-btn');
+        if (generateDescriptionBtn) {
+            generateDescriptionBtn.addEventListener('click', generateDescription);
+        }
 
-    // Setup reset button
-    document.getElementById('reset-btn').addEventListener('click', function() {
+        // Setup reset button
+        const resetBtn = document.getElementById('reset-btn');
+        if (resetBtn) {
+            resetBtn.addEventListener('click', function() {
+                resetUI();
+                updateImageAcrossSteps();
+            });
+        }
+
+        // Setup AI provider selection
+        const aiProvider = document.getElementById('ai-provider');
+        const apiKeyContainer = document.getElementById('api-key-container');
+        if (aiProvider && apiKeyContainer) {
+            aiProvider.addEventListener('change', function() {
+                apiKeyContainer.style.display = 
+                    this.value === 'openai' || this.value === 'deepseek' ? 'block' : 'none';
+            });
+        }
+
+        // Initialize UI state
         resetUI();
-        updateImageAcrossSteps();
-    });
+    } catch (error) {
+        console.error('Error initializing application:', error);
+        alert('An error occurred while initializing the application. Please refresh the page and try again.');
+    }
 }); 
