@@ -379,6 +379,23 @@
         .active-step {
             animation: fadeIn 0.5s ease-out;
         }
+        
+        /* Loading spinner styles */
+        .loading-spinner {
+            display: none;
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
@@ -461,12 +478,10 @@
                     
                     <div class="classification-results">
                         <h3>Classification</h3>
-                        <div id="classification-progress" class="progress-indicator">
+                        <div class="result-section">
+                            <div id="loading-spinner" class="loading-spinner"></div>
                             <div id="classification-progress-bar" class="progress-bar"></div>
-                        </div>
-                        
-                        <div id="result-container" class="result-container">
-                            <p id="result">Click "Classify Image" to see results.</p>
+                            <div id="result" class="result-container">Click "Classify Image" to see results.</div>
                         </div>
                     </div>
                 </div>
@@ -821,6 +836,7 @@ document.getElementById('classify-button').addEventListener('click', async funct
     const imageElement = document.getElementById('preview');
     const resultElement = document.getElementById('result');
     const progressBar = document.getElementById('classification-progress-bar');
+    const loadingSpinner = document.getElementById('loading-spinner');
     
     if (!modelURL) {
         resultElement.textContent = 'Please enter a model URL.';
@@ -832,6 +848,8 @@ document.getElementById('classify-button').addEventListener('click', async funct
         return;
     }
     
+    // Show loading spinner
+    loadingSpinner.style.display = 'block';
     resultElement.textContent = 'Loading model and classifying image...';
     progressBar.style.width = '10%';
     
@@ -939,6 +957,9 @@ document.getElementById('classify-button').addEventListener('click', async funct
         }
         progressBar.style.width = '0%';
         console.error('Classification error:', error);
+    } finally {
+        // Hide loading spinner
+        loadingSpinner.style.display = 'none';
     }
 });
 
