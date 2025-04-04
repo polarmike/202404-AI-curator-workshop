@@ -3,13 +3,383 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Image Classifier</title>
-    <link rel="stylesheet" href="styles.css">
-    <!-- Load TensorFlow.js as a regular script (not as a module) -->
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.11.0"></script>
-    <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js"></script>
-    <script src="https://elevenlabs.io/convai-widget/index.js"></script>
-    <script src="script.js"></script>
+    <title>Image Classifier - New Three Step Process</title>
+    <!-- TensorFlow.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tensorflow/3.18.0/tf.min.js"></script>
+    <!-- Fallback to direct CDN if the first one fails -->
+    <script>
+        if (typeof tf === 'undefined') {
+            document.write('<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.18.0/dist/tf.min.js"><\/scr' + 'ipt>');
+        }
+    </script>
+    <!-- Lodash -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.min.js"></script>
+    <!-- ElevenLabs Conversational Agent Widget Script -->
+    <script src="https://elevenlabs.io/convai-widget/index.js" async type="text/javascript"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #121212;
+            color: #e0e0e0;
+        }
+        
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+        
+        h1, h2, h3, h4 {
+            color: #ffffff;
+            font-weight: 500;
+        }
+        
+        h1 {
+            text-align: center;
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #737DFE 0%, #FFCAC9 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            padding: 10px 0;
+        }
+        
+        /* Step indicator styles */
+        .steps-container {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+        }
+        
+        .step {
+            flex: 1;
+            text-align: center;
+            padding: 15px;
+            background-color: #1e1e1e;
+            border-radius: 10px;
+            position: relative;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+            margin: 0 8px;
+        }
+        
+        .step h3 {
+            margin-top: 0;
+        }
+        
+        .step p {
+            margin-bottom: 0;
+        }
+        
+        .step.active {
+            background-color: #4CAF50;
+            transform: translateY(-5px);
+        }
+        
+        .step.completed {
+            background-color: #2c3e50;
+        }
+        
+        .step:not(:last-child):after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            right: -25px;
+            width: 30px;
+            height: 2px;
+            background-color: #444;
+            z-index: -1;
+        }
+        
+        /* Main content area with new layout */
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+            background-color: #1e1e1e;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+        }
+        
+        /* Image section with upload button */
+        .image-section {
+            display: flex;
+            gap: 20px;
+            padding: 20px;
+            background-color: #252525;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .image-preview {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .image-controls {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 15px;
+        }
+        
+        /* Model section with classify button */
+        .model-section {
+            display: flex;
+            gap: 20px;
+            padding: 20px;
+            background-color: #252525;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .model-input {
+            flex: 2;
+        }
+        
+        .model-controls {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .classification-results {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        .chat-instructions {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        #preview {
+            max-width: 300px;
+            max-height: 300px;
+            border-radius: 10px;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s ease;
+        }
+        
+        #preview:hover {
+            transform: scale(1.03);
+        }
+        
+        .no-image-placeholder {
+            width: 300px;
+            height: 250px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #2a2a2a;
+            border: 2px dashed #555;
+            border-radius: 10px;
+            color: #888;
+            font-size: 16px;
+        }
+        
+        .preview-container {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .step-content {
+            display: none;
+        }
+        
+        .active-step {
+            display: block;
+        }
+        
+        button {
+            padding: 12px 20px;
+            background: linear-gradient(90deg, #3a7bd5 0%, #00d2ff 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 5px;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        button:hover {
+            background: linear-gradient(90deg, #3a7bd5 0%, #3a6073 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+        }
+        
+        button.disabled, button:disabled {
+            background: linear-gradient(90deg, #5a5a5a 0%, #3a3a3a 100%);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .button-container {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 25px;
+        }
+        
+        input[type="file"] {
+            padding: 12px;
+            margin: 5px 0;
+            width: 100%;
+            border: 1px solid #444;
+            border-radius: 8px;
+            background-color: #333;
+            color: #e0e0e0;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        input[type="text"], input[type="password"], select {
+            padding: 12px;
+            margin: 5px 0;
+            width: 100%;
+            border: 1px solid #444;
+            border-radius: 8px;
+            background-color: #333;
+            color: #e0e0e0;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #ccc;
+        }
+        
+        .instructions {
+            background-color: #2a2a2a;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            border-left: 4px solid #4CAF50;
+        }
+        
+        .result-container {
+            margin-top: 20px;
+            background-color: #252525;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .loader {
+            border: 4px solid #333;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 2s linear infinite;
+            display: inline-block;
+            margin-left: 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .api-settings {
+            background-color: #252525;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .progress-indicator {
+            height: 6px;
+            width: 100%;
+            background-color: #2a2a2a;
+            margin-top: 15px;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            width: 0;
+            background: linear-gradient(90deg, #00d2ff 0%, #3a7bd5 100%);
+            transition: width 0.3s ease;
+            border-radius: 3px;
+        }
+        
+        ul {
+            list-style-type: none;
+            padding-left: 0;
+        }
+        
+        ul li {
+            padding: 8px 10px;
+            margin-bottom: 5px;
+            background-color: #333;
+            border-radius: 5px;
+        }
+        
+        #description-container, #result-container {
+            background-color: #252525;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            min-height: 100px;
+        }
+        
+        .section-title {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .section-title:before, .section-title:after {
+            content: "";
+            flex: 1;
+            border-bottom: 1px solid #444;
+            margin: 0 10px;
+        }
+        
+        #image-info {
+            margin-top: 15px;
+            font-size: 14px;
+            color: #aaa;
+        }
+        
+        /* Animation for transitions */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .active-step {
+            animation: fadeIn 0.5s ease-out;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -17,15 +387,15 @@
         
         <!-- Step indicators -->
         <div class="steps-container">
-            <div class="step active">
+            <div id="step1" class="step active">
                 <h3>Step 1</h3>
                 <p>Upload Image</p>
             </div>
-            <div class="step">
+            <div id="step2" class="step">
                 <h3>Step 2</h3>
                 <p>Process & Analyze</p>
             </div>
-            <div class="step">
+            <div id="step3" class="step">
                 <h3>Step 3</h3>
                 <p>Interactive Chat</p>
             </div>
@@ -34,7 +404,7 @@
         <!-- Main content area with new layout -->
         <div class="main-content">
             <!-- Step 1 Content: Upload Image -->
-            <div id="step1" class="step-content active-step">
+            <div id="step1-content" class="step-content active-step">
                 <h2>Step 1: Upload Your Image</h2>
                 
                 <div class="instructions">
@@ -66,18 +436,18 @@
                             <label for="model-url">Teachable Machine Model URL:</label>
                             <input type="text" id="model-url" placeholder="https://teachablemachine.withgoogle.com/models/YOUR_MODEL_ID/model.json">
                         </div>
-                        <button id="classify-btn" class="classify-button">Classify Image</button>
+                        <button id="classify-button" class="classify-button">Classify Image</button>
                     </div>
                 </div>
                 
                 <div class="button-container">
                     <div></div> <!-- Empty div for spacing -->
-                    <button id="proceed-to-step2" disabled>Proceed to Analysis</button>
+                    <button id="proceed-to-step2">Proceed to Analysis</button>
                 </div>
             </div>
             
             <!-- Step 2 Content: Process & Analyze -->
-            <div id="step2" class="step-content">
+            <div id="step2-content" class="step-content">
                 <h2>Step 2: Process & Analyze Image</h2>
                 
                 <!-- Image section with image preview -->
@@ -96,10 +466,7 @@
                         </div>
                         
                         <div id="result-container" class="result-container">
-                            <div id="loading-spinner" class="loading-spinner"></div>
-                            <div id="result">
-                                <p>Click "Classify Image" to see results.</p>
-                            </div>
+                            <p id="result">Click "Classify Image" to see results.</p>
                         </div>
                     </div>
                 </div>
@@ -117,19 +484,19 @@
                         </select>
                     </div>
                     <div id="api-key-container" style="display: none;">
-                        <form id="api-key-form" onsubmit="return false;">
-                            <label for="api-key">API Key:</label>
-                            <input type="password" id="api-key" placeholder="Enter your API key">
-                        </form>
+                        <label for="api-key">API Key:</label>
+                        <input type="password" id="api-key" placeholder="Enter your API key">
                     </div>
                 </div>
                 
                 <div id="description-container" class="result-container">
-                    <div id="loading-spinner-description" class="loading-spinner"></div>
-                    <p id="description">Click "Generate Description" to analyze the image.</p>
+                    <p id="image-description">Click "Generate Description" to analyze the image.</p>
+                    <div id="description-loader" style="display: none;">
+                        <span class="loader"></span> Generating description...
+                    </div>
                 </div>
                 
-                <button id="generate-description-btn" disabled>Generate Image Description</button>
+                <button id="generate-description" disabled>Generate Image Description</button>
                 
                 <div class="button-container">
                     <button id="back-to-step1">Back to Upload</button>
@@ -138,7 +505,7 @@
             </div>
             
             <!-- Step 3 Content: Interactive Chat -->
-            <div id="step3" class="step-content">
+            <div id="step3-content" class="step-content">
                 <h2>Step 3: Interact with AI Assistant</h2>
                 
                 <!-- Keep the image visible in step 3 as well -->
@@ -169,10 +536,608 @@
                 </div>
                 <div class="button-container">
                     <button id="back-to-step2">Back to Analysis</button>
-                    <button id="reset-btn">Start Over</button>
+                    <button id="reset-process">Start Over</button>
                 </div>
             </div>
         </div>
     </div>
+
+    <script>
+        // Global variables
+let classificationResult = null;
+let imageDescription = null;
+
+// DOM Elements
+const stepIndicators = [
+    document.getElementById('step1'),
+    document.getElementById('step2'),
+    document.getElementById('step3')
+];
+
+const stepContents = [
+    document.getElementById('step1-content'),
+    document.getElementById('step2-content'),
+    document.getElementById('step3-content')
+];
+
+// Navigation functions
+function showStep(stepNumber) {
+    // Update step indicators
+    stepIndicators.forEach((step, index) => {
+        if (index + 1 < stepNumber) {
+            step.className = 'step completed';
+        } else if (index + 1 === stepNumber) {
+            step.className = 'step active';
+        } else {
+            step.className = 'step';
+        }
+    });
+    
+    // Show appropriate content
+    stepContents.forEach((content, index) => {
+        if (index + 1 === stepNumber) {
+            content.className = 'step-content active-step';
+        } else {
+            content.className = 'step-content';
+        }
+    });
+    
+    // Update the image in all steps
+    updateImageAcrossSteps();
+}
+
+// Function to keep the image consistent across all steps
+function updateImageAcrossSteps() {
+    const originalPreview = document.getElementById('preview');
+    const noImageDiv = document.getElementById('no-image');
+    const isImageVisible = originalPreview.style.display !== 'none';
+    
+    // Update step 2 preview
+    const step2Container = document.getElementById('step2-preview-container');
+    step2Container.innerHTML = ''; // Clear previous contents
+    
+    if (isImageVisible) {
+        const previewClone = originalPreview.cloneNode(true);
+        step2Container.appendChild(previewClone);
+    } else {
+        const noImageClone = noImageDiv.cloneNode(true);
+        step2Container.appendChild(noImageClone);
+    }
+    
+    // Update step 3 preview
+    const step3Container = document.getElementById('step3-preview-container');
+    step3Container.innerHTML = ''; // Clear previous contents
+    
+    if (isImageVisible) {
+        const previewClone = originalPreview.cloneNode(true);
+        step3Container.appendChild(previewClone);
+    } else {
+        const noImageClone = noImageDiv.cloneNode(true);
+        step3Container.appendChild(noImageClone);
+    }
+}
+
+// Preview uploaded image
+document.getElementById('image-upload').addEventListener('change', function(event) {
+    const file = event.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const preview = document.getElementById('preview');
+            preview.src = e.target.result;
+            preview.style.display = 'block';
+            document.getElementById('no-image').style.display = 'none';
+            
+            // Update image info
+            document.getElementById('image-info').style.display = 'block';
+            document.getElementById('image-name').textContent = `Filename: ${file.name}`;
+            document.getElementById('image-size').textContent = `Size: ${(file.size / 1024).toFixed(2)} KB`;
+            
+            // Enable proceed button (always enabled now)
+            document.getElementById('proceed-to-step2').disabled = false;
+            
+            // Update image in all steps
+            updateImageAcrossSteps();
+        };
+        reader.readAsDataURL(file);
+    }
+});
+
+// Function to get image as base64
+function getImageAsBase64(imgElement) {
+    const canvas = document.createElement('canvas');
+    canvas.width = imgElement.naturalWidth;
+    canvas.height = imgElement.naturalHeight;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(imgElement, 0, 0);
+    return canvas.toDataURL('image/jpeg').split(',')[1]; // Remove data URL prefix
+}
+
+// Function to generate local description (no API)
+function generateLocalDescription(imgElement, classResults) {
+    if (!classResults || classResults.length === 0) {
+        return "No classification data available to generate a description.";
+    }
+    
+    // Get the top prediction and its confidence
+    const topClass = classResults[0].className;
+    const topConfidence = classResults[0].probability;
+    
+    // Get image properties
+    const imgWidth = imgElement.naturalWidth;
+    const imgHeight = imgElement.naturalHeight;
+    const aspectRatio = imgWidth / imgHeight;
+    
+    // Determine image orientation
+    let orientation = "square";
+    if (aspectRatio > 1.2) orientation = "landscape";
+    if (aspectRatio < 0.8) orientation = "portrait";
+    
+    // Get color information by analyzing the image with canvas
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = 50;  // Small size for faster processing
+    canvas.height = 50;
+    ctx.drawImage(imgElement, 0, 0, canvas.width, canvas.height);
+    const pixelData = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+    
+    // Calculate average brightness
+    let totalBrightness = 0;
+    for (let i = 0; i < pixelData.length; i += 4) {
+        const r = pixelData[i];
+        const g = pixelData[i + 1];
+        const b = pixelData[i + 2];
+        totalBrightness += (r + g + b) / 3;
+    }
+    const avgBrightness = totalBrightness / (pixelData.length / 4);
+    
+    // Determine if image is dark, medium, or bright
+    let brightness = "medium brightness";
+    if (avgBrightness < 85) brightness = "dark";
+    if (avgBrightness > 170) brightness = "bright";
+    
+    // Build the description
+    let description = "";
+    
+    if (topConfidence > 0.85) {
+        description = `This image clearly shows a ${topClass}.`;
+    } else if (topConfidence > 0.6) {
+        description = `This image appears to show a ${topClass}.`;
+    } else {
+        description = `This image might contain a ${topClass}, but I'm not very confident.`;
+    }
+    
+    // Add additional details about image qualities
+    description += ` It is a ${orientation} image with ${brightness} overall.`;
+    
+    // Add information about other possible classes if they have significant probability
+    const otherClasses = classResults.slice(1).filter(c => c.probability > 0.15);
+    if (otherClasses.length > 0) {
+        description += ` I can also see elements of ${otherClasses.map(c => c.className).join(", ")}.`;
+    }
+    
+    return description;
+}
+
+// Function to get image description from OpenAI
+async function getOpenAIDescription(imgElement, classResults) {
+    const apiKey = document.getElementById('api-key').value;
+    if (!apiKey) {
+        throw new Error('Please enter your OpenAI API key');
+    }
+    
+    const base64Image = getImageAsBase64(imgElement);
+    const topClasses = classResults.slice(0, 3).map(r => r.className).join(', ');
+    
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`
+        },
+        body: JSON.stringify({
+            model: 'gpt-4-turbo',  // Updated to current vision model
+            messages: [
+                {
+                    role: 'user',
+                    content: [
+                        {
+                            type: 'text',
+                            text: `Describe this image in detail. Our classification model identified these possible objects: ${topClasses}. Please verify and provide a detailed description of the image.`
+                        },
+                        {
+                            type: 'image_url',
+                            image_url: {
+                                url: `data:image/jpeg;base64,${base64Image}`
+                            }
+                        }
+                    ]
+                }
+            ],
+            max_tokens: 300
+        })
+    });
+    
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(`OpenAI API error: ${errorData.error?.message || response.statusText}`);
+    }
+    
+    const data = await response.json();
+    return data.choices[0].message.content;
+}
+
+// Function to get image description from DeepSeek
+async function getDeepSeekDescription(imgElement, classResults) {
+    const apiKey = document.getElementById('api-key').value;
+    if (!apiKey) {
+        throw new Error('Please enter your DeepSeek API key');
+    }
+    
+    const base64Image = getImageAsBase64(imgElement);
+    const topClasses = classResults.slice(0, 3).map(r => r.className).join(', ');
+    
+    const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`
+        },
+        body: JSON.stringify({
+            model: 'deepseek-chat',
+            messages: [
+                {
+                    role: 'user',
+                    content: [
+                        {
+                            type: 'text',
+                            text: `Describe this image in detail. Our classification model identified these possible objects: ${topClasses}. Please verify and provide a detailed description of the image.`
+                        },
+                        {
+                            type: 'image',
+                            image_url: {
+                                url: `data:image/jpeg;base64,${base64Image}`
+                            }
+                        }
+                    ]
+                }
+            ],
+            max_tokens: 300
+        })
+    });
+    
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(`DeepSeek API error: ${errorData.error?.message || response.statusText}`);
+    }
+    
+    const data = await response.json();
+    return data.choices[0].message.content;
+}
+
+// Load Teachable Machine model and classify image
+document.getElementById('classify-button').addEventListener('click', async function() {
+    const modelURL = document.getElementById('model-url').value;
+    const imageElement = document.getElementById('preview');
+    const resultElement = document.getElementById('result');
+    const progressBar = document.getElementById('classification-progress-bar');
+    
+    if (!modelURL) {
+        resultElement.textContent = 'Please enter a model URL.';
+        return;
+    }
+    
+    if (imageElement.style.display === 'none' || !imageElement.src) {
+        resultElement.textContent = 'Please upload an image first.';
+        return;
+    }
+    
+    resultElement.textContent = 'Loading model and classifying image...';
+    progressBar.style.width = '10%';
+    
+    try {
+        // Check if TensorFlow.js is loaded
+        if (typeof tf === 'undefined') {
+            throw new Error('TensorFlow.js could not be loaded. Please check your internet connection and try again.');
+        }
+        
+        // Load the model
+        const modelFolderPath = modelURL.substring(0, modelURL.lastIndexOf('/') + 1);
+        
+        resultElement.textContent = 'Loading model... (This may take a few moments)';
+        progressBar.style.width = '30%';
+        
+        try {
+            const model = await tf.loadLayersModel(modelURL);
+            progressBar.style.width = '50%';
+            
+            // Load metadata
+            resultElement.textContent = 'Loading metadata...';
+            const metadataURL = `${modelFolderPath}metadata.json`;
+            const metadataResponse = await fetch(metadataURL);
+            
+            progressBar.style.width = '70%';
+            
+            if (!metadataResponse.ok) {
+                throw new Error(`Failed to fetch metadata: ${metadataResponse.status} ${metadataResponse.statusText}`);
+            }
+            
+            const metadata = await metadataResponse.json();
+            
+            // Convert the image to a tensor
+            const tensor = tf.browser.fromPixels(imageElement)
+                .resizeNearestNeighbor([metadata.imageSize || 224, metadata.imageSize || 224])
+                .toFloat()
+                .div(tf.scalar(255))
+                .expandDims();
+            
+            progressBar.style.width = '80%';
+            
+            // Make prediction
+            resultElement.textContent = 'Analyzing image...';
+            const prediction = await model.predict(tensor).data();
+            
+            progressBar.style.width = '90%';
+            
+            // Process results
+            const results = Array.from(prediction)
+                .map((score, i) => ({ 
+                    className: metadata.labels[i],
+                    probability: score
+                }))
+                .sort((a, b) => b.probability - a.probability);
+            
+            // Store the result in the global variable
+            classificationResult = results;
+            
+            // Display results
+            let resultHTML = '<h3>Classification Results:</h3>';
+            resultHTML += '<ul>';
+            results.forEach(result => {
+                const percentage = (result.probability * 100).toFixed(2);
+                resultHTML += `<li>${result.className}: <strong>${percentage}%</strong></li>`;
+            });
+            resultHTML += '</ul>';
+            
+            resultHTML += '<p><strong>Top prediction:</strong> ' + results[0].className + '</p>';
+            
+            resultElement.innerHTML = resultHTML;
+            progressBar.style.width = '100%';
+            
+            // Enable generate description button
+            document.getElementById('generate-description').disabled = false;
+            
+        } catch (modelError) {
+            console.error('Model loading error:', modelError);
+            progressBar.style.width = '0%';
+            
+            // Provide more specific error messages
+            if (modelError.message.includes('fetch')) {
+                resultElement.innerHTML = `
+                    <p>Error: Failed to fetch the model or metadata.</p>
+                    <p><strong>Troubleshooting steps:</strong></p>
+                    <ol>
+                        <li>Check that your Teachable Machine model URL is correct and ends with "model.json"</li>
+                        <li>Ensure your model is publicly accessible (not private)</li>
+                        <li>Verify your internet connection is working</li>
+                        <li>If using a custom-hosted model, ensure CORS is enabled on your server</li>
+                    </ol>
+                    <p>Detailed error: ${modelError.message}</p>
+                `;
+            } else {
+                resultElement.innerHTML = `Error: ${modelError.message}<br>Check the console for more details.`;
+            }
+            
+            throw modelError; // Re-throw to prevent further processing
+        }
+    } catch (error) {
+        if (!resultElement.innerHTML.includes('Troubleshooting')) {
+            resultElement.innerHTML = `
+                <p>Error: ${error.message}</p>
+                <p>Please check your model URL, internet connection, and try again.</p>
+            `;
+        }
+        progressBar.style.width = '0%';
+        console.error('Classification error:', error);
+    }
+});
+
+// Handle generate description button click
+document.getElementById('generate-description').addEventListener('click', async function() {
+    if (!classificationResult) {
+        alert('Please classify the image first.');
+        return;
+    }
+    
+    const imageElement = document.getElementById('preview');
+    if (!imageElement || !imageElement.complete || imageElement.naturalHeight === 0) {
+        alert('Image not fully loaded. Please wait a moment and try again.');
+        return;
+    }
+    
+    const provider = document.getElementById('ai-provider').value;
+    const descriptionElement = document.getElementById('image-description');
+    const loader = document.getElementById('description-loader');
+    
+    // Show the loader
+    loader.style.display = 'block';
+    descriptionElement.textContent = 'Generating description...';
+    
+    try {
+        switch (provider) {
+            case 'openai':
+                imageDescription = await getOpenAIDescription(imageElement, classificationResult);
+                break;
+            case 'deepseek':
+                imageDescription = await getDeepSeekDescription(imageElement, classificationResult);
+                break;
+            default:
+                // Local generation (no API call)
+                imageDescription = generateLocalDescription(imageElement, classificationResult);
+        }
+        
+        // Display the description
+        descriptionElement.textContent = imageDescription;
+        
+        // Enable proceed button
+        document.getElementById('proceed-to-step3').disabled = false;
+        
+    } catch (error) {
+        descriptionElement.textContent = `Error generating description: ${error.message}`;
+        console.error('Description generation error:', error);
+    } finally {
+        // Hide the loader
+        loader.style.display = 'none';
+    }
+});
+
+// Function to update agent with classification results and description
+function updateAgent() {
+    if (!classificationResult) {
+        console.warn('No classification result to update the agent with.');
+        return;
+    }
+    
+    // If no description has been generated yet, generate one now
+    if (!imageDescription) {
+        const imageElement = document.getElementById('preview');
+        if (imageElement && imageElement.complete && imageElement.naturalHeight > 0) {
+            imageDescription = generateLocalDescription(imageElement, classificationResult);
+            document.getElementById('image-description').textContent = imageDescription;
+        } else {
+            imageDescription = "Image description could not be generated automatically.";
+        }
+    }
+    
+    // Format the classification results as a clean string
+    let formattedResults = '';
+    classificationResult.forEach((result, index) => {
+        const percentage = (result.probability * 100).toFixed(1);
+        formattedResults += `${result.className}: ${percentage}%`;
+        if (index < classificationResult.length - 1) {
+            formattedResults += ', ';
+        }
+    });
+    
+    // Get the top prediction
+    const topClass = classificationResult[0].className;
+    const topProbability = (classificationResult[0].probability * 100).toFixed(1);
+    
+    // Create a dynamic variables object
+    const dynamicVars = {
+        classification_results: formattedResults,
+        top_class: topClass,
+        top_probability: topProbability,
+        classification_time: new Date().toLocaleTimeString(),
+        image_description: imageDescription
+    };
+    
+    try {
+        // Get the existing agent element
+        const agentElement = document.getElementById('elevenlabs-agent');
+        
+        // Update the dynamic-variables attribute
+        agentElement.setAttribute('dynamic-variables', JSON.stringify(dynamicVars));
+        
+    } catch (error) {
+        console.error("Error updating agent:", error);
+    }
+}
+
+// Event listeners
+
+// Navigation button listeners
+document.getElementById('proceed-to-step2').addEventListener('click', function() {
+    showStep(2);
+});
+
+document.getElementById('back-to-step1').addEventListener('click', function() {
+    showStep(1);
+});
+
+document.getElementById('proceed-to-step3').addEventListener('click', function() {
+    // Update the agent before proceeding
+    updateAgent();
+    showStep(3);
+});
+
+document.getElementById('back-to-step2').addEventListener('click', function() {
+    showStep(2);
+});
+
+document.getElementById('reset-process').addEventListener('click', function() {
+    // Reset all data
+    classificationResult = null;
+    imageDescription = null;
+    
+    // Clear UI elements
+    document.getElementById('preview').src = '';
+    document.getElementById('preview').style.display = 'none';
+    document.getElementById('no-image').style.display = 'block';
+    document.getElementById('image-info').style.display = 'none';
+    document.getElementById('image-upload').value = '';
+    document.getElementById('result').textContent = 'Click "Classify Image" to see results.';
+    document.getElementById('image-description').textContent = 'Click "Generate Description" to analyze the image.';
+    document.getElementById('classification-progress-bar').style.width = '0%';
+    
+    // Reset buttons
+    document.getElementById('proceed-to-step2').disabled = false;
+    document.getElementById('generate-description').disabled = true;
+    document.getElementById('proceed-to-step3').disabled = true;
+    
+    // Go back to step 1
+    showStep(1);
+});
+
+// Show/hide API key input based on selected provider
+document.getElementById('ai-provider').addEventListener('change', function() {
+    const provider = this.value;
+    const apiKeyContainer = document.getElementById('api-key-container');
+    
+    if (provider === 'local') {
+        apiKeyContainer.style.display = 'none';
+    } else {
+        apiKeyContainer.style.display = 'block';
+    }
+});
+
+// Set initial visibility of API key field and ensure the proceed button is enabled
+window.addEventListener('DOMContentLoaded', function() {
+    const provider = document.getElementById('ai-provider').value;
+    const apiKeyContainer = document.getElementById('api-key-container');
+    
+    if (provider === 'local') {
+        apiKeyContainer.style.display = 'none';
+    } else {
+        apiKeyContainer.style.display = 'block';
+    }
+    
+    // Make sure the Proceed button is enabled by default
+    document.getElementById('proceed-to-step2').disabled = false;
+    
+    // Initialize preview containers in other steps
+    updateImageAcrossSteps();
+    
+    // Add some animations for a better first impression
+    document.querySelector('h1').style.opacity = 0;
+    document.querySelector('.steps-container').style.opacity = 0;
+    document.querySelector('.main-content').style.opacity = 0;
+    
+    setTimeout(() => {
+        document.querySelector('h1').style.transition = 'opacity 0.8s ease';
+        document.querySelector('h1').style.opacity = 1;
+        
+        setTimeout(() => {
+            document.querySelector('.steps-container').style.transition = 'opacity 0.8s ease';
+            document.querySelector('.steps-container').style.opacity = 1;
+            
+            setTimeout(() => {
+                document.querySelector('.main-content').style.transition = 'opacity 0.8s ease';
+                document.querySelector('.main-content').style.opacity = 1;
+            }, 200);
+        }, 200);
+    }, 300);
+});
+    </script>
 </body>
 </html>
