@@ -1,5 +1,5 @@
 // Global variables
-let classificationResult = null;
+let classificationResults = null;
 let imageDescription = null;
 
 // DOM Elements
@@ -246,18 +246,28 @@ async function getDeepSeekDescription(imgElement, classResults) {
 
 // Loading state functions
 function showLoading() {
-    document.getElementById('loadingContainer').style.display = 'block';
+    document.getElementById('loading-spinner').style.display = 'block';
     document.getElementById('result').style.display = 'none';
 }
 
 function hideLoading() {
-    document.getElementById('loadingContainer').style.display = 'none';
+    document.getElementById('loading-spinner').style.display = 'none';
     document.getElementById('result').style.display = 'block';
+}
+
+function showDescriptionLoading() {
+    document.getElementById('loading-spinner-description').style.display = 'block';
+    document.getElementById('description').style.display = 'none';
+}
+
+function hideDescriptionLoading() {
+    document.getElementById('loading-spinner-description').style.display = 'none';
+    document.getElementById('description').style.display = 'block';
 }
 
 // Function to update agent with classification results and description
 function updateAgent() {
-    if (!classificationResult) {
+    if (!classificationResults) {
         console.warn('No classification result to update the agent with.');
         return;
     }
@@ -266,7 +276,7 @@ function updateAgent() {
     if (!imageDescription) {
         const imageElement = document.getElementById('preview');
         if (imageElement && imageElement.complete && imageElement.naturalHeight > 0) {
-            imageDescription = generateLocalDescription(imageElement, classificationResult);
+            imageDescription = generateLocalDescription(imageElement, classificationResults);
             document.getElementById('image-description').textContent = imageDescription;
         } else {
             imageDescription = "Image description could not be generated automatically.";
@@ -275,17 +285,17 @@ function updateAgent() {
     
     // Format the classification results as a clean string
     let formattedResults = '';
-    classificationResult.forEach((result, index) => {
+    classificationResults.forEach((result, index) => {
         const percentage = (result.probability * 100).toFixed(1);
         formattedResults += `${result.className}: ${percentage}%`;
-        if (index < classificationResult.length - 1) {
+        if (index < classificationResults.length - 1) {
             formattedResults += ', ';
         }
     });
     
     // Get the top prediction
-    const topClass = classificationResult[0].className;
-    const topProbability = (classificationResult[0].probability * 100).toFixed(1);
+    const topClass = classificationResults[0].className;
+    const topProbability = (classificationResults[0].probability * 100).toFixed(1);
     
     // Create a dynamic variables object
     const dynamicVars = {
@@ -409,7 +419,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     .sort((a, b) => b.probability - a.probability);
                 
                 // Store the result in the global variable
-                classificationResult = results;
+                classificationResults = results;
                 
                 // Display results
                 let resultHTML = '<h3>Classification Results:</h3>';
@@ -465,7 +475,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Generate description button click handler
     document.getElementById('generate-description').addEventListener('click', async function() {
-        if (!classificationResult) {
+        if (!classificationResults) {
             alert('Please classify the image first.');
             return;
         }
@@ -487,14 +497,14 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             switch (provider) {
                 case 'openai':
-                    imageDescription = await getOpenAIDescription(imageElement, classificationResult);
+                    imageDescription = await getOpenAIDescription(imageElement, classificationResults);
                     break;
                 case 'deepseek':
-                    imageDescription = await getDeepSeekDescription(imageElement, classificationResult);
+                    imageDescription = await getDeepSeekDescription(imageElement, classificationResults);
                     break;
                 default:
                     // Local generation (no API call)
-                    imageDescription = generateLocalDescription(imageElement, classificationResult);
+                    imageDescription = generateLocalDescription(imageElement, classificationResults);
             }
             
             // Display the description
@@ -533,7 +543,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     document.getElementById('reset-process').addEventListener('click', function() {
         // Reset all data
-        classificationResult = null;
+        classificationResults = null;
         imageDescription = null;
         
         // Clear UI elements
