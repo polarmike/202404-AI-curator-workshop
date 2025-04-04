@@ -277,7 +277,7 @@ function updateAgent() {
         const imageElement = document.getElementById('preview');
         if (imageElement && imageElement.complete && imageElement.naturalHeight > 0) {
             imageDescription = generateLocalDescription(imageElement, classificationResults);
-            document.getElementById('image-description').textContent = imageDescription;
+            document.getElementById('description').textContent = imageDescription;
         } else {
             imageDescription = "Image description could not be generated automatically.";
         }
@@ -347,7 +347,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Classify button click handler
-    document.getElementById('classify-button').addEventListener('click', async function() {
+    document.getElementById('classify-btn').addEventListener('click', async function() {
         const modelURL = document.getElementById('model-url').value;
         const imageElement = document.getElementById('preview');
         const resultElement = document.getElementById('result');
@@ -436,7 +436,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 progressBar.style.width = '100%';
                 
                 // Enable generate description button
-                document.getElementById('generate-description').disabled = false;
+                document.getElementById('generate-description-btn').disabled = false;
                 
             } catch (modelError) {
                 console.error('Model loading error:', modelError);
@@ -474,7 +474,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Generate description button click handler
-    document.getElementById('generate-description').addEventListener('click', async function() {
+    document.getElementById('generate-description-btn').addEventListener('click', async function() {
         if (!classificationResults) {
             alert('Please classify the image first.');
             return;
@@ -487,8 +487,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         const provider = document.getElementById('ai-provider').value;
-        const descriptionElement = document.getElementById('image-description');
-        const loader = document.getElementById('description-loader');
+        const descriptionElement = document.getElementById('description');
+        const loader = document.getElementById('loading-spinner-description');
         
         // Show the loader
         loader.style.display = 'block';
@@ -520,6 +520,11 @@ document.addEventListener('DOMContentLoaded', function() {
             // Hide the loader
             loader.style.display = 'none';
         }
+        
+        // Reset buttons
+        document.getElementById('proceed-to-step2').disabled = false;
+        document.getElementById('generate-description-btn').disabled = true;
+        document.getElementById('proceed-to-step3').disabled = true;
     });
 
     // Navigation button listeners
@@ -541,7 +546,8 @@ document.addEventListener('DOMContentLoaded', function() {
         showStep(2);
     });
 
-    document.getElementById('reset-process').addEventListener('click', function() {
+    // Reset button click handler
+    document.getElementById('reset-btn').addEventListener('click', function() {
         // Reset all data
         classificationResults = null;
         imageDescription = null;
@@ -553,12 +559,12 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('image-info').style.display = 'none';
         document.getElementById('image-upload').value = '';
         document.getElementById('result').textContent = 'Click "Classify Image" to see results.';
-        document.getElementById('image-description').textContent = 'Click "Generate Description" to analyze the image.';
+        document.getElementById('description').textContent = 'Click "Generate Description" to analyze the image.';
         document.getElementById('classification-progress-bar').style.width = '0%';
         
         // Reset buttons
         document.getElementById('proceed-to-step2').disabled = false;
-        document.getElementById('generate-description').disabled = true;
+        document.getElementById('generate-description-btn').disabled = true;
         document.getElementById('proceed-to-step3').disabled = true;
         
         // Go back to step 1
