@@ -379,13 +379,18 @@ document.addEventListener('DOMContentLoaded', function() {
             progressBar.style.width = '30%';
             
             try {
-                const model = await tf.loadLayersModel(modelURL);
+                // Use a CORS proxy to bypass CORS restrictions
+                const corsProxyUrl = 'https://cors-anywhere.herokuapp.com/';
+                const proxiedModelUrl = corsProxyUrl + modelURL;
+                const proxiedMetadataUrl = corsProxyUrl + `${modelFolderPath}metadata.json`;
+                
+                // Load model with CORS proxy
+                const model = await tf.loadLayersModel(proxiedModelUrl);
                 progressBar.style.width = '50%';
                 
-                // Load metadata
+                // Load metadata with CORS proxy
                 resultElement.textContent = 'Loading metadata...';
-                const metadataURL = `${modelFolderPath}metadata.json`;
-                const metadataResponse = await fetch(metadataURL);
+                const metadataResponse = await fetch(proxiedMetadataUrl);
                 
                 progressBar.style.width = '70%';
                 
