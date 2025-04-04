@@ -49,8 +49,12 @@ export async function classifyImage() {
             throw new Error('Please enter a valid Teachable Machine model URL');
         }
 
-        // Load the model directly (TensorFlow.js is loaded as a global script)
-        const model = await tf.loadLayersModel(modelUrl);
+        // Use a more reliable CORS proxy
+        const corsProxyUrl = 'https://api.allorigins.win/raw?url=';
+        const proxyModelUrl = corsProxyUrl + encodeURIComponent(modelUrl);
+        
+        // Load the model with CORS proxy
+        const model = await tf.loadLayersModel(proxyModelUrl);
         
         // Preprocess the image
         const tensor = tf.browser.fromPixels(preview)
