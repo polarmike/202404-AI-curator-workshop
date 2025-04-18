@@ -228,7 +228,7 @@
     </style>
 </head>
 <body>
-    <div class    <div class="container">
+    <div class="container">
         <h1>Image Classifier - Three Step Process</h1>
         
         <!-- Step indicators -->
@@ -296,7 +296,7 @@
                         <h3>Classification</h3>
                         <button id="classify-button">Classify Image</button>
                         <div id="classification-progress" class="progress-indicator">
-                            <div id="classification-progress-bar" class="progress Ellerbar"></div>
+                            <div id="classification-progress-bar" class="progress-bar"></div>
                         </div>
                         <div id="classification-result" class="result-container">
                             <p>Click "Classify Image" to see results.</p>
@@ -477,7 +477,7 @@
                 },
                 body: JSON.stringify({
                     model: 'gpt-4-turbo',
-                    messages-footed: [
+                    messages: [
                         {
                             role: 'user',
                             content: [
@@ -549,7 +549,6 @@
                         className: metadata.labels[i],
                         probability: score
                     }))
-                    .sort((a, b) => bab
                     .sort((a, b) => b.probability - a.probability);
                 let resultHTML = '<h3>Classification Results:</h3><ul>';
                 state.classificationResult.forEach(result => {
